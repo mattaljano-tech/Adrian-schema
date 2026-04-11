@@ -49,9 +49,8 @@
             messagingSenderId: "956492068542",
             appId: "1:956492068542:web:ee1473b9c1d6ed5a1e90ef"
         };
+        // Endast en appId-deklaration nu!
         const appId = 'gaming-schema-app-light';
-      
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'gaming-schema-app-light';
 
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
