@@ -39,7 +39,7 @@
 
     <script type="text/babel" data-type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, doc, setDoc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const { useState, useEffect, useRef } = React;
@@ -109,7 +109,6 @@
             );
         };
 
-        // --- PARENT UI ---
         function ParentUI({ activities, db, appId, user }) {
             const [showAddForm, setShowAddForm] = useState(false);
             const [newTitle, setNewTitle] = useState('');
@@ -311,7 +310,6 @@
         // --- MAIN APP ---
         function App() {
             const [user, setUser] = useState(null);
-            // HÄR ÄR UPPDATERINGEN: Appen kollar telefonens minne efter tidigare val
             const [role, setRole] = useState(() => localStorage.getItem('adrian_app_role') || null);
             const [activities, setActivities] = useState([]);
             const [currentTime, setCurrentTime] = useState(new Date());
@@ -320,7 +318,6 @@
             const audioRef = useRef(null);
             const firedNotifs = useRef(new Set());
 
-            // Ny funktion för att byta roll och spara i minnet
             const changeRole = (newRole) => {
                 if (newRole) {
                     localStorage.setItem('adrian_app_role', newRole);
@@ -336,7 +333,7 @@
                         await signInAnonymously(auth);
                     } catch (err) {
                         console.error("Auth error:", err);
-                        setError("Kunde inte logga in. Kontrollera Firebase Authentication.");
+                        setError("Kunde inte logga in. Kontrollera Firebase.");
                     }
                 };
                 initAuth();
@@ -356,7 +353,7 @@
                 }, (err) => {
                     console.error("Firestore error:", err);
                     if (err.code === 'permission-denied') {
-                        setError("Databasen är låst. Ändra reglerna i Firebase Firestore till 'allow read, write: if true;'");
+                        setError("Databasen är låst. Kolla reglerna i Firebase.");
                     }
                 });
                 return () => unsubscribe();
@@ -381,6 +378,10 @@
             }, [currentTime, notifsEnabled, activities, role]);
 
             const enableNotifs = () => {
+                if (!window.Notification) {
+                    alert("Notiser stöds inte i denna webbläsare, eller så måste du lägga till appen på hemskärmen först!");
+                    return;
+                }
                 Notification.requestPermission().then(p => {
                     if (p === 'granted') {
                         setNotifsEnabled(true);
@@ -451,6 +452,12 @@
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(err => console.log('SW failed', err));
+            });
+        }
     </script>
 </body>
 </html>
