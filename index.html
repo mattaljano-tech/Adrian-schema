@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adrians Schema</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .font-clock {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif !important;
+            font-weight: 800 !important;
+        }
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+        .animate-dot { animation: pulse-dot 1.5s infinite; }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-slate-100 antialiased">
+    <div id="root"></div>
+
+    <script type="text/babel" data-type="module">
+        const { useState, useEffect, useRef } = React;
+        
+        // --- FIREBASE SETUP ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyD32139sl-MYBnStg5FsGA5tIXS9wQ15JI",
+            authDomain: "adrians-schema.firebaseapp.com",
+            projectId: "adrians-schema",
+            storageBucket: "adrians-schema.firebasestorage.app",
+            messagingSenderId: "956492068542",
+            appId: "1:956492068542:web:ee1473b9c1d6ed5a1e90ef"
+        };
+        const appId = 'gaming-schema-app-light';
+      
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'gaming-schema-app-light';
+
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, doc, setDoc, deleteDoc, updateDoc, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // --- UTILS ---
+        const formatDuration = (mins) => {
+            if (mins < 60) return `${mins} min`;
+            const h = Math.floor(mins / 60);
+            const m = mins % 60;
+            return m === 0 ? `${h} tim` : `${h} tim ${m} min`;
+        };
+
+        const getSwedishTimeWords = (date) => {
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            const hourNames = ["tolv", "ett", "två", "tre", "fyra", "fem", "sex", "sju", "åtta", "nio", "tio", "elva", "tolv"];
+            let h = hours % 12;
+            let nextH = (h + 1) % 12;
+            if (nextH === 0) nextH = 12;
+            if (h === 0) h = 12;
+            if (minutes === 0) return hourNames[h];
+            if (minutes >= 1 && minutes <= 4) return `strax efter ${hourNames[h]}`;
+            if (minutes === 5) return `fem över ${hourNames[h]}`;
+            if (minutes === 10) return `tio över ${hourNames[h]}`;
+            if (minutes === 15) return `kvart över ${hourNames[h]}`;
+            if (minutes === 20) return `tjugo över ${hourNames[h]}`;
+            if (minutes === 25) return `fem i halv ${hourNames[nextH]}`;
+            if (minutes === 30) return `halv ${hourNames[nextH]}`;
+            if (minutes === 35) return `fem över halv ${hourNames[nextH]}`;
+            if (minutes === 40) return `tjugo i ${hourNames[nextH]}`;
+            if (minutes === 45) return `kvart i ${hourNames[nextH]}`;
+            if (minutes === 50) return `tio i ${hourNames[nextH]}`;
+            if (minutes === 55) return `fem i ${hourNames[nextH]}`;
+            return minutes < 30 ? `nyss fyllda ${hourNames[h]}` : `snart ${hourNames[nextH]}`;
+        };
+
+        const AnalogClock = ({ date, size = 100 }) => {
+            const sDeg = date.getSeconds() * 6;
+            const mDeg = date.getMinutes() * 6 + date.getSeconds() * 0.1;
+            const hDeg = (date.getHours() % 12) * 30 + date.getMinutes() * 0.5;
+            return (
+                <div style={{ width: size, height: size }} className="relative bg-white rounded-full border-[6px] border-slate-900 shadow-md flex-shrink-0">
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(num => (
+                        <div key={num} className="absolute inset-0 p-1.5 text-center pointer-events-none" style={{ transform: `rotate(${num * 30}deg)` }}>
+                            <span className="inline-block text-[12px] font-black text-slate-400" style={{ transform: `rotate(-${num * 30}deg)` }}>{num}</span>
+                        </div>
+                    ))}
+                    <div className="absolute top-1/2 left-1/2 w-3 h-3 bg-slate-900 rounded-full -translate-x-1/2 -translate-y-1/2 z-20 border-2 border-white shadow-sm"></div>
+                    <div className="absolute top-1/2 left-1/2 w-1.5 h-[28%] bg-red-600 rounded-full origin-bottom -translate-x-1/2 -translate-y-full z-10" style={{ transform: `translateX(-50%) translateY(-100%) rotate(${hDeg}deg)` }}></div>
+                    <div className="absolute top-1/2 left-1/2 w-1 h-[38%] bg-blue-600 rounded-full origin-bottom -translate-x-1/2 -translate-y-full z-10" style={{ transform: `translateX(-50%) translateY(-100%) rotate(${mDeg}deg)` }}></div>
+                </div>
+            );
+        };
+
+        // --- PARENT UI ---
+        function ParentUI({ activities, db, appId, user }) {
+            const [showAddForm, setShowAddForm] = useState(false);
+            const [newTitle, setNewTitle] = useState('');
+            const [newDate, setNewDate] = useState(new Date().toISOString().split('T')[0]);
+            const [newStartTime, setNewStartTime] = useState('');
+            const [newDuration, setNewDuration] = useState('60');
+            const [newPrepTime, setNewPrepTime] = useState('0');
+            const [isLiveEvent, setIsLiveEvent] = useState(false);
+
+            const handleAdd = async (e) => {
+                e.preventDefault();
+                if (!user) return;
+                const finalTitle = isLiveEvent && !newTitle ? "Steal a brainroth" : newTitle;
+                if (!finalTitle || !newStartTime || !newDate) return;
+                
+                const [y, m, d] = newDate.split('-').map(Number);
+                const [h, min] = newStartTime.split(':').map(Number);
+                const startMs = new Date(y, m - 1, d, h, min).getTime();
+                
+                const activity = {
+                    title: finalTitle,
+                    startTime: startMs,
+                    endTime: startMs + (Number(newDuration) * 60 * 1000),
+                    duration: Number(newDuration),
+                    prepTime: Number(newPrepTime),
+                    isLiveEvent: isLiveEvent,
+                    createdAt: Date.now()
+                };
+                
+                try {
+                    const colPath = collection(db, 'artifacts', appId, 'public', 'data', 'schedule_items');
+                    await setDoc(doc(colPath), activity);
+                    setShowAddForm(false); setNewTitle(''); setIsLiveEvent(false);
+                } catch (err) { console.error("Write error:", err); }
+            };
+
+            const handleShift = async (activity, mins) => {
+                if (!user) return;
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'schedule_items', activity.id);
+                const shiftMs = mins * 60 * 1000;
+                await updateDoc(docRef, {
+                    startTime: activity.startTime + shiftMs,
+                    endTime: activity.endTime + shiftMs
+                });
+            };
+
+            const grouped = activities.reduce((acc, a) => {
+                const dateKey = new Date(a.startTime).toISOString().split('T')[0];
+                if (!acc[dateKey]) acc[dateKey] = [];
+                acc[dateKey].push(a);
+                return acc;
+            }, {});
+
+            return (
+                <div className="space-y-8 mt-8">
+                    <h1 className="text-xl font-black uppercase tracking-widest text-slate-800 border-b-2 border-slate-200 pb-2">Admin Control</h1>
+                    
+                    {showAddForm ? (
+                        <form onSubmit={handleAdd} className="bg-white p-6 rounded-3xl border-2 border-slate-200 shadow-xl space-y-4">
+                            <input type="text" value={newTitle} onChange={e => setNewTitle(e.target.value)} className="w-full p-3 bg-slate-50 border rounded-xl font-bold" placeholder={isLiveEvent ? "Steal a brainroth" : "Uppdragsnamn..."} />
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <input type="date" value={newDate} onChange={e => setNewDate(e.target.value)} className="p-3 bg-slate-50 border rounded-xl font-clock" />
+                                <input type="time" value={newStartTime} onChange={e => setNewStartTime(e.target.value)} className="p-3 bg-slate-50 border rounded-xl font-clock" />
+                                <input type="number" value={newDuration} onChange={e => setNewDuration(e.target.value)} className="p-3 bg-slate-50 border rounded-xl font-clock" placeholder="Minuter" />
+                            </div>
+                            <select value={newPrepTime} onChange={e => setNewPrepTime(e.target.value)} className="w-full p-3 bg-orange-50 border rounded-xl font-clock">
+                                <option value="0">Ingen förberedelse</option>
+                                <option value="5">5 min innan</option>
+                                <option value="10">10 min innan</option>
+                                <option value="15">15 min innan</option>
+                            </select>
+                            <label className="flex items-center gap-3 p-3 bg-slate-50 border rounded-xl cursor-pointer">
+                                <input type="checkbox" checked={isLiveEvent} onChange={e => setIsLiveEvent(e.target.checked)} className="w-5 h-5 rounded text-blue-600" />
+                                <span className="font-black uppercase text-xs">Steal a brainroth Event</span>
+                            </label>
+                            <div className="flex gap-2">
+                                <button type="button" onClick={() => setShowAddForm(false)} className="flex-1 p-3 bg-slate-200 rounded-xl font-black uppercase text-xs">Avbryt</button>
+                                <button type="submit" className="flex-1 p-3 bg-blue-600 text-white rounded-xl font-black uppercase text-xs shadow-lg">Spara</button>
+                            </div>
+                        </form>
+                    ) : (
+                        <button onClick={() => setShowAddForm(true)} className="w-full py-6 border-4 border-dashed border-blue-200 bg-white text-blue-600 rounded-[2.5rem] font-black uppercase tracking-widest">+ Lägg till uppdrag</button>
+                    )}
+
+                    <div className="space-y-8">
+                        {Object.keys(grouped).sort().map(date => (
+                            <div key={date} className="space-y-4">
+                                <h2 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">{date}</h2>
+                                {grouped[date].map(a => (
+                                    <div key={a.id} className="bg-white p-5 rounded-[2rem] border-2 border-slate-200 shadow-sm flex flex-col gap-4">
+                                        <div className="flex justify-between items-start">
+                                            <div>
+                                                <h3 className="font-black uppercase text-lg text-slate-800">{a.title}</h3>
+                                                <p className="text-sm font-bold text-slate-500 font-clock">{new Date(a.startTime).toLocaleTimeString('sv-SE', {hour:'2-digit',minute:'2-digit'})} - {formatDuration(a.duration)}</p>
+                                            </div>
+                                            <button onClick={() => deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'schedule_items', a.id))} className="text-red-400 p-2 font-bold uppercase text-[10px]">Ta bort</button>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <button onClick={() => handleShift(a, -15)} className="flex-1 p-2 bg-slate-100 rounded-lg font-black text-[10px] uppercase">-15 min</button>
+                                            <button onClick={() => handleShift(a, 15)} className="flex-1 p-2 bg-blue-50 text-blue-600 rounded-lg font-black text-[10px] uppercase">+15 min</button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        function ChildUI({ activities, currentTime }) {
+            const now = currentTime.getTime();
+            const activeAndFuture = activities.filter(a => a.endTime > now && (a.startTime - now) < 24*60*60*1000);
+            const current = activeAndFuture.find(a => a.startTime <= now && a.endTime > now);
+            const future = activeAndFuture.filter(a => a.startTime > now);
+            const live = activeAndFuture.find(a => a.isLiveEvent);
+            const pad = (n) => String(n).padStart(2,'0');
+
+            const getRem = (t) => {
+                const diff = t - now;
+                if (diff <= 0) return { h:0, m:0, s:0 };
+                return { h: Math.floor(diff/3600000), m: Math.floor((diff/60000)%60), s: Math.floor((diff/1000)%60) };
+            };
+
+            return (
+                <div className="space-y-12 mt-8">
+                    {current && (
+                        <div className="bg-white rounded-[3rem] p-10 border-4 border-blue-200 shadow-xl flex flex-col items-center">
+                            <div className="bg-blue-50 text-blue-600 px-6 py-2 rounded-full font-black uppercase text-sm mb-6 tracking-widest border-2 border-blue-100 font-clock">Aktivt Uppdrag</div>
+                            <h2 className="text-5xl font-black text-slate-900 mb-8 uppercase text-center leading-tight">{current.title}</h2>
+                            <div className="w-full bg-slate-50 p-8 rounded-[2.5rem] border-2 border-slate-100 flex flex-col items-center shadow-inner">
+                                <div className="text-slate-400 font-black uppercase text-xs mb-4">Tid kvar</div>
+                                <div className="flex items-baseline gap-2 font-clock text-7xl sm:text-8xl">
+                                    {getRem(current.endTime).h > 0 && <><span className="text-slate-800 leading-none">{pad(getRem(current.endTime).h)}</span><span className="text-slate-200 text-4xl">:</span></>}
+                                    <span className="text-slate-800 leading-none">{pad(getRem(current.endTime).m)}</span>
+                                    <span className="text-slate-200 text-4xl">:</span>
+                                    <span className="text-blue-600 leading-none">{pad(getRem(current.endTime).s)}</span>
+                                </div>
+                                <div className="mt-8 bg-blue-100 text-blue-800 px-8 py-3 rounded-full font-black uppercase text-xl border-2 border-blue-200 font-clock">Hemma kl {new Date(current.endTime).toLocaleTimeString('sv-SE', {hour:'2-digit',minute:'2-digit'})}</div>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="space-y-6">
+                        <h3 className="text-slate-400 font-black uppercase tracking-widest px-4 text-sm font-clock">Dagens Schema</h3>
+                        <div className="space-y-4">
+                            {future.length > 0 ? future.map(a => (
+                                <div key={a.id} className={`p-6 rounded-[2.5rem] border-2 shadow-sm flex items-center gap-6 ${a.isLiveEvent ? 'bg-blue-50 border-blue-300' : 'bg-white border-slate-200'}`}>
+                                    <div className="flex flex-col items-center min-w-[90px] border-r-2 border-slate-100 pr-6">
+                                        <span className="text-2xl font-clock text-slate-800">{new Date(a.startTime).toLocaleTimeString('sv-SE', {hour:'2-digit',minute:'2-digit'})}</span>
+                                        <span className="text-[10px] font-black uppercase text-slate-400 mt-1 font-clock">{formatDuration(a.duration)}</span>
+                                    </div>
+                                    <div className="flex-1">
+                                        <span className={`text-xl font-black uppercase ${a.isLiveEvent ? 'text-blue-600' : 'text-slate-700'}`}>{a.isLiveEvent ? "LIVE EVENT" : a.title}</span>
+                                        <div className="text-xs font-bold text-slate-400 font-clock">Slutar kl {new Date(a.endTime).toLocaleTimeString('sv-SE', {hour:'2-digit',minute:'2-digit'})}</div>
+                                    </div>
+                                </div>
+                            )) : !current && (
+                                <div className="bg-white p-10 rounded-[3rem] border-4 border-slate-200 shadow-xl flex flex-col items-center text-center relative overflow-hidden">
+                                    <div className="flex gap-6 mb-8 relative z-10">
+                                        <div className="w-16 h-12 bg-red-600 rounded-2xl flex items-center justify-center transform -rotate-6 shadow-lg"><div className="w-0 h-0 border-t-[6px] border-t-transparent border-l-[10px] border-l-white border-b-[6px] border-b-transparent ml-1"></div></div>
+                                        <div className="w-14 h-14 bg-slate-800 rounded-xl flex items-center justify-center transform rotate-12 shadow-lg"><div className="w-6 h-6 bg-white rounded-sm"></div></div>
+                                    </div>
+                                    <h2 className="text-4xl font-black text-slate-800 uppercase mb-4">Fritid!</h2>
+                                    <p className="text-slate-500 font-bold uppercase text-xs tracking-widest font-clock">Dags för Roblox eller YouTube!</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {live && (
+                        <div className="bg-gradient-to-r from-[#00A2FF] via-white to-[#00A2FF] rounded-[3rem] p-1 border-4 border-slate-200 shadow-2xl overflow-hidden mt-20">
+                            <div className="bg-white/90 p-10 rounded-[2.8rem] flex flex-col items-center">
+                                <div className="flex flex-col items-center gap-2 mb-8">
+                                    <span className="text-4xl font-black uppercase tracking-widest text-slate-900">STEAL A</span>
+                                    <span className="text-5xl sm:text-7xl font-black uppercase tracking-widest text-slate-900 flex items-center gap-3">
+                                        BRAINR
+                                        <div className="w-14 h-14 bg-[#00A2FF] rounded-lg shadow-md transform -rotate-12 flex items-center justify-center shadow-[inset_0_2px_4px_rgba(255,255,255,0.3)]"><div className="w-4 h-4 bg-white rounded-sm"></div></div>
+                                        TH
+                                    </span>
+                                </div>
+                                <div className="bg-red-600 border-4 border-red-800 px-8 py-3 rounded-2xl shadow-lg mb-8 flex items-center gap-3">
+                                    <div className="w-4 h-4 bg-white rounded-full animate-dot"></div>
+                                    <span className="text-2xl font-black uppercase text-white tracking-widest font-clock">LIVE OM..</span>
+                                </div>
+                                <div className="bg-slate-50 p-8 rounded-[2.5rem] border-2 border-slate-100 shadow-inner w-full flex justify-center items-start gap-4 font-clock text-7xl sm:text-8xl">
+                                    {getRem(live.startTime).h > 0 && <><div className="flex flex-col items-center"><span className="text-slate-800 leading-none">{pad(getRem(live.startTime).h)}</span><span className="text-[10px] uppercase font-black text-slate-400 mt-4">Timmar</span></div><span className="text-slate-200 text-3xl mt-4">:</span></>}
+                                    <div className="flex flex-col items-center"><span className="text-slate-800 leading-none">{pad(getRem(live.startTime).m)}</span><span className="text-[10px] uppercase font-black text-slate-400 mt-4">Minuter</span></div>
+                                    <span className="text-slate-200 text-3xl mt-4">:</span>
+                                    <div className="flex flex-col items-center"><span className="text-red-500 leading-none">{pad(getRem(live.startTime).s)}</span><span className="text-[10px] uppercase font-black text-red-400 mt-4 font-clock">Sekunder</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        // --- MAIN APP ---
+        function App() {
+            const [user, setUser] = useState(null);
+            const [role, setRole] = useState(null);
+            const [activities, setActivities] = useState([]);
+            const [currentTime, setCurrentTime] = useState(new Date());
+            const [notifsEnabled, setNotifsEnabled] = useState(false);
+            const [error, setError] = useState(null);
+            const audioRef = useRef(null);
+            const firedNotifs = useRef(new Set());
+
+            // 1. Initial Auth (RULE 3)
+            useEffect(() => {
+                const initAuth = async () => {
+                    try {
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            await signInWithCustomToken(auth, __initial_auth_token);
+                        } else {
+                            await signInAnonymously(auth);
+                        }
+                    } catch (err) {
+                        console.error("Auth error:", err);
+                        setError("Kunde inte ansluta till servern.");
+                    }
+                };
+                initAuth();
+                const unsubAuth = onAuthStateChanged(auth, setUser);
+                const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+                return () => { unsubAuth(); clearInterval(timer); };
+            }, []);
+
+            // 2. Data fetching (RULE 3 Guard)
+            useEffect(() => {
+                if (!user) return; // Wait for auth!
+                
+                const colPath = collection(db, 'artifacts', appId, 'public', 'data', 'schedule_items');
+                const unsubscribe = onSnapshot(colPath, (snapshot) => {
+                    const items = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+                    items.sort((a, b) => a.startTime - b.startTime);
+                    setActivities(items);
+                    setError(null);
+                }, (err) => {
+                    console.error("Firestore error:", err);
+                    if (err.code === 'permission-denied') {
+                        setError("Behörighet saknas. Loggar in igen...");
+                    }
+                });
+                return () => unsubscribe();
+            }, [user]);
+
+            // Notification logic
+            useEffect(() => {
+                if (!notifsEnabled || role !== 'child') return;
+                activities.forEach(a => {
+                    const now = currentTime.getTime();
+                    const prepStart = a.startTime - (a.prepTime * 60000);
+                    if (a.prepTime > 0 && Math.abs(now - prepStart) < 2000 && !firedNotifs.current.has(a.id + '-prep')) {
+                        if (Notification.permission === "granted") new Notification("Dags att göra sig i ordning!", { body: a.title });
+                        audioRef.current?.play().catch(e => console.log("Audio failed", e));
+                        firedNotifs.current.add(a.id + '-prep');
+                    }
+                    if (Math.abs(now - a.startTime) < 2000 && !firedNotifs.current.has(a.id + '-start')) {
+                        if (Notification.permission === "granted") new Notification("Nu börjar det!", { body: a.title });
+                        audioRef.current?.play().catch(e => console.log("Audio failed", e));
+                        firedNotifs.current.add(a.id + '-start');
+                    }
+                });
+            }, [currentTime, notifsEnabled, activities, role]);
+
+            const enableNotifs = () => {
+                Notification.requestPermission().then(p => {
+                    if (p === 'granted') {
+                        setNotifsEnabled(true);
+                        audioRef.current?.play().catch(e => console.log("Init audio failed", e));
+                    }
+                });
+            };
+
+            const bedtimeInfo = ((currentMs) => {
+                const now = new Date(currentMs);
+                const bedtime = new Date(currentMs);
+                if (now.getHours() < 6) bedtime.setDate(bedtime.getDate() - 1);
+                bedtime.setHours(22, 0, 0, 0);
+                const diffMins = Math.floor((currentMs - bedtime.getTime()) / 60000);
+                if (diffMins >= 0) return { text: `+${diffMins} min`, isLate: true };
+                const absMins = Math.abs(diffMins);
+                if (absMins >= 60) return { text: `${Math.floor(absMins / 60)}h ${absMins % 60}m kvar`, isLate: false };
+                return { text: `${absMins} min kvar`, isLate: false };
+            })(currentTime.getTime());
+
+            if (!role) {
+                return (
+                    <div className="flex flex-col min-h-screen items-center justify-center p-6 bg-slate-50">
+                        <h1 className="text-4xl font-black mb-12 text-slate-900 uppercase tracking-widest text-center">Välj Användare</h1>
+                        <div className="flex flex-col gap-8 w-full max-w-md">
+                            <button onClick={() => setRole('child')} className="group flex flex-col items-center justify-center bg-red-600 border-b-8 border-red-800 rounded-[2.5rem] p-10 shadow-xl active:translate-y-2 active:border-b-0 transition-all">
+                                <div className="w-20 h-20 mb-4 bg-white rounded-xl flex items-center justify-center transform rotate-12"><div className="w-8 h-8 bg-red-600 rounded-sm"></div></div>
+                                <span className="text-4xl font-black text-white uppercase tracking-wider">Adrian</span>
+                                <span className="text-red-100 font-bold mt-2 uppercase text-sm font-clock">Dagens schema</span>
+                            </button>
+                            <button onClick={() => setRole('parent')} className="bg-white border-4 border-slate-200 rounded-[2.5rem] p-8 shadow-md active:scale-95 transition-all text-slate-700 font-black uppercase tracking-widest">Admin Control</button>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="max-w-3xl mx-auto p-4 md:p-8 pb-20">
+                    <audio ref={audioRef} src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto" />
+                    <button onClick={() => setRole(null)} className="text-slate-300 mb-10 uppercase font-black text-xs hover:text-slate-500 font-clock">Byt vy</button>
+                    
+                    {error && (
+                        <div className="mb-6 p-4 bg-red-100 border-2 border-red-200 text-red-700 rounded-2xl font-bold text-center">
+                            {error}
+                        </div>
+                    )}
+
+                    <header className="flex flex-col items-center mb-12">
+                        {role === 'child' && !notifsEnabled && (
+                            <button onClick={enableNotifs} className="mb-8 bg-blue-600 text-white px-8 py-4 rounded-3xl font-black uppercase shadow-lg animate-bounce border-b-4 border-blue-800 active:translate-y-1 active:border-b-0 font-clock">Aktivera Notiser & Ljud</button>
+                        )}
+                        <div className="flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-12 mb-6 w-full">
+                            <AnalogClock date={currentTime} size={130} />
+                            <div className="text-7xl sm:text-[9rem] font-clock text-slate-900 leading-none drop-shadow-md text-center">{String(currentTime.getHours()).padStart(2, '0')}:{String(currentTime.getMinutes()).padStart(2, '0')}</div>
+                        </div>
+                        <div className="text-2xl sm:text-4xl font-black text-slate-400 uppercase tracking-widest mb-8 bg-white/60 px-8 py-3 rounded-[2rem] border-2 border-slate-200 text-center shadow-sm font-clock">{getSwedishTimeWords(currentTime)}</div>
+                        <div className="flex items-center gap-3 bg-white px-6 py-3 rounded-full border-2 border-slate-200 shadow-sm font-clock">
+                            <span className="text-slate-500 text-sm font-bold uppercase tracking-widest font-mono">Läggdags 22:00</span>
+                            <div className="w-1 h-6 bg-slate-200 rounded-full"></div>
+                            <span className={`text-lg font-clock uppercase tracking-wider ${bedtimeInfo.isLate ? 'text-red-600' : 'text-blue-600'}`}>{bedtimeInfo.text}</span>
+                        </div>
+                    </header>
+
+                    {role === 'parent' ? <ParentUI activities={activities} db={db} appId={appId} user={user} /> : <ChildUI activities={activities} currentTime={currentTime} />}
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(err => console.log('SW failed', err));
+            });
+        }
+    </script>
+</body>
+</html>
