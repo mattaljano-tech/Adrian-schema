@@ -68,28 +68,49 @@
         };
 
         const getSwedishTimeWords = (date) => {
-            const hours = date.getHours();
-            const minutes = date.getMinutes();
-            const hourNames = ["tolv", "ett", "två", "tre", "fyra", "fem", "sex", "sju", "åtta", "nio", "tio", "elva", "tolv"];
-            let h = hours % 12;
-            let nextH = (h + 1) % 12;
-            if (nextH === 0) nextH = 12;
-            if (h === 0) h = 12;
-            if (minutes === 0) return hourNames[h];
-            if (minutes >= 1 && minutes <= 4) return `strax efter ${hourNames[h]}`;
-            if (minutes === 5) return `fem över ${hourNames[h]}`;
-            if (minutes === 10) return `tio över ${hourNames[h]}`;
-            if (minutes === 15) return `kvart över ${hourNames[h]}`;
-            if (minutes === 20) return `tjugo över ${hourNames[h]}`;
-            if (minutes === 25) return `fem i halv ${hourNames[nextH]}`;
-            if (minutes === 30) return `halv ${hourNames[nextH]}`;
-            if (minutes === 35) return `fem över halv ${hourNames[nextH]}`;
-            if (minutes === 40) return `tjugo i ${hourNames[nextH]}`;
-            if (minutes === 45) return `kvart i ${hourNames[nextH]}`;
-            if (minutes === 50) return `tio i ${hourNames[nextH]}`;
-            if (minutes === 55) return `fem i ${hourNames[nextH]}`;
-            return minutes < 30 ? `nyss fyllda ${hourNames[h]}` : `snart ${hourNames[nextH]}`;
-        };
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    
+    // Svenska uttal för timmarna
+    const hourNames = ["tolv", "ett", "två", "tre", "fyra", "fem", "sex", "sju", "åtta", "nio", "tio", "elva", "tolv"];
+    let h = hours % 12;
+    let nextH = (h + 1) % 12;
+    if (h === 0) h = 12;
+    if (nextH === 0) nextH = 12;
+
+    // Fasta intervaller som är vanliga i svenskt talspråk
+    if (minutes === 0) return hourNames[h];
+    if (minutes === 5) return `fem över ${hourNames[h]}`;
+    if (minutes === 10) return `tio över ${hourNames[h]}`;
+    if (minutes === 15) return `kvart över ${hourNames[h]}`;
+    if (minutes === 20) return `tjugo över ${hourNames[h]}`;
+    if (minutes === 25) return `fem i halv ${hourNames[nextH]}`;
+    if (minutes === 30) return `halv ${hourNames[nextH]}`;
+    if (minutes === 35) return `fem över halv ${hourNames[nextH]}`;
+    if (minutes === 40) return `tjugo i ${hourNames[nextH]}`;
+    if (minutes === 45) return `kvart i ${hourNames[nextH]}`;
+    if (minutes === 50) return `tio i ${hourNames[nextH]}`;
+    if (minutes === 55) return `fem i ${hourNames[nextH]}`;
+
+    // Alla nummer mellan 1-29 stavas ut för minut-precisionen
+    const numWords = ["", "en", "två", "tre", "fyra", "fem", "sex", "sju", "åtta", "nio", "tio", "elva", "tolv", "tretton", "fjorton", "femton", "sexton", "sjutton", "arton", "nitton", "tjugo", "tjugoen", "tjugotvå", "tjugotre", "tjugofyra"];
+    const getMinStr = (num) => `${numWords[num]} ${num === 1 ? "minut" : "minuter"}`;
+
+    // Dynamisk beräkning ner på minuten baserat på svensk klocklogik
+    if (minutes > 0 && minutes < 25) {
+        if (minutes > 20) return `${getMinStr(30 - minutes)} i halv ${hourNames[nextH]}`;
+        return `${getMinStr(minutes)} över ${hourNames[h]}`;
+    } else if (minutes > 25 && minutes < 30) {
+        return `${getMinStr(30 - minutes)} i halv ${hourNames[nextH]}`;
+    } else if (minutes > 30 && minutes < 35) {
+        return `${getMinStr(minutes - 30)} över halv ${hourNames[nextH]}`;
+    } else if (minutes > 35 && minutes < 45) {
+        if (minutes < 40) return `${getMinStr(minutes - 30)} över halv ${hourNames[nextH]}`;
+        return `${getMinStr(60 - minutes)} i ${hourNames[nextH]}`;
+    } else if (minutes > 45) {
+        return `${getMinStr(60 - minutes)} i ${hourNames[nextH]}`;
+    }
+};
 
         const AnalogClock = ({ date, size = 100 }) => {
             const sDeg = date.getSeconds() * 6;
