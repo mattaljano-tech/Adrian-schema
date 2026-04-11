@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="sv">
-<head> 
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Adrians Schema</title>
@@ -38,6 +38,11 @@
     <div id="root"></div>
 
     <script type="text/babel" data-type="module">
+        // Firebase imports MÅSTE vara högst upp i moduler
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, doc, setDoc, deleteDoc, updateDoc, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
         const { useState, useEffect, useRef } = React;
         
         // --- FIREBASE SETUP ---
@@ -49,12 +54,7 @@
             messagingSenderId: "956492068542",
             appId: "1:956492068542:web:ee1473b9c1d6ed5a1e90ef"
         };
-        // Endast en appId-deklaration nu!
         const appId = 'gaming-schema-app-light';
-
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, onSnapshot, doc, setDoc, deleteDoc, updateDoc, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
