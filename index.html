@@ -41,7 +41,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, doc, setDoc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
+        import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-messaging.js";
         const { useState, useEffect, useRef } = React;
         
         // --- FIREBASE SETUP ---
@@ -58,7 +58,8 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-
+        const messaging = getMessaging(app);
+        
         // --- UTILS ---
         const formatDuration = (mins) => {
             if (mins < 60) return `${mins} min`;
@@ -398,18 +399,40 @@
                 });
             }, [currentTime, notifsEnabled, activities, role]);
 
-            const enableNotifs = () => {
-                if (!window.Notification) {
-                    alert("Notiser stöds inte i denna webbläsare, eller så måste du lägga till appen på hemskärmen först!");
-                    return;
-                }
-                Notification.requestPermission().then(p => {
-                    if (p === 'granted') {
-                        setNotifsEnabled(true);
-                        audioRef.current?.play().catch(e => console.log("Init audio failed", e));
-                    }
+           const enableNotifs = async () => {
+    if (!window.Notification) {
+        alert("Notiser stöds inte. På iPhone MÅSTE du trycka på 'Dela' -> 'Lägg till på hemskärmen' först!");
+        return;
+    }
+
+    try {
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+            setNotifsEnabled(true);
+            audioRef.current?.play().catch(e => console.log("Init audio failed", e));
+            
+            // Hämta token (Klistra in din VAPID-nyckel från Firebase här)
+            const currentToken = await getToken(messaging, { 
+                vapidKey: 'BKc6JIfn6UU5KfzfPe0l56Pj5gFfQflQeroH8hEenz3OoeiFrfQIdwhKD1c380MP9ydhPVdOyvIE4C-Schh-0sA' 
+            });
+
+            if (currentToken) {
+                console.log("Fick Token!", currentToken);
+                // Spara token i databasen så servern vet vem den ska larma
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'device_tokens', 'adrians_telefon'), {
+                    token: currentToken,
+                    updatedAt: Date.now()
                 });
-            };
+                alert("Push-notiser är nu aktiverade! Token sparad i databasen.");
+            }
+        } else {
+            alert("Du nekade notiser. Ändra i telefonens inställningar.");
+        }
+    } catch (err) {
+        console.error("Fel vid notis-setup:", err);
+        alert("Något gick fel: " + err.message);
+    }
+};
 
             const bedtimeInfo = ((currentMs) => {
                 const now = new Date(currentMs);
