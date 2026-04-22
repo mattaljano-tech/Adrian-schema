@@ -27,8 +27,16 @@
             50% { opacity: 0.5; transform: scale(0.8); }
         }
         .animate-dot { animation: pulse-dot 1.5s infinite; }
+
+        @keyframes flow-line {
+            from { stroke-dashoffset: 24; }
+            to { stroke-dashoffset: 0; }
+        }
+        .animate-flow {
+            stroke-dasharray: 12;
+            animation: flow-line 1s linear infinite;
+        }
         
-        /* Custom scrollbar */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
@@ -42,6 +50,7 @@
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, doc, setDoc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-messaging.js";
+        
         const { useState, useEffect, useRef } = React;
         
         // --- FIREBASE SETUP ---
@@ -69,49 +78,45 @@
         };
 
         const getSwedishTimeWords = (date) => {
-    const hours = date.getHours();
-    const minutes = date.getMinutes();
-    
-    // Svenska uttal för timmarna
-    const hourNames = ["tolv", "ett", "två", "tre", "fyra", "fem", "sex", "sju", "åtta", "nio", "tio", "elva", "tolv"];
-    let h = hours % 12;
-    let nextH = (h + 1) % 12;
-    if (h === 0) h = 12;
-    if (nextH === 0) nextH = 12;
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            
+            const hourNames = ["tolv", "ett", "två", "tre", "fyra", "fem", "sex", "sju", "åtta", "nio", "tio", "elva", "tolv"];
+            let h = hours % 12;
+            let nextH = (h + 1) % 12;
+            if (h === 0) h = 12;
+            if (nextH === 0) nextH = 12;
 
-    // Fasta intervaller som är vanliga i svenskt talspråk
-    if (minutes === 0) return hourNames[h];
-    if (minutes === 5) return `fem över ${hourNames[h]}`;
-    if (minutes === 10) return `tio över ${hourNames[h]}`;
-    if (minutes === 15) return `kvart över ${hourNames[h]}`;
-    if (minutes === 20) return `tjugo över ${hourNames[h]}`;
-    if (minutes === 25) return `fem i halv ${hourNames[nextH]}`;
-    if (minutes === 30) return `halv ${hourNames[nextH]}`;
-    if (minutes === 35) return `fem över halv ${hourNames[nextH]}`;
-    if (minutes === 40) return `tjugo i ${hourNames[nextH]}`;
-    if (minutes === 45) return `kvart i ${hourNames[nextH]}`;
-    if (minutes === 50) return `tio i ${hourNames[nextH]}`;
-    if (minutes === 55) return `fem i ${hourNames[nextH]}`;
+            if (minutes === 0) return hourNames[h];
+            if (minutes === 5) return `fem över ${hourNames[h]}`;
+            if (minutes === 10) return `tio över ${hourNames[h]}`;
+            if (minutes === 15) return `kvart över ${hourNames[h]}`;
+            if (minutes === 20) return `tjugo över ${hourNames[h]}`;
+            if (minutes === 25) return `fem i halv ${hourNames[nextH]}`;
+            if (minutes === 30) return `halv ${hourNames[nextH]}`;
+            if (minutes === 35) return `fem över halv ${hourNames[nextH]}`;
+            if (minutes === 40) return `tjugo i ${hourNames[nextH]}`;
+            if (minutes === 45) return `kvart i ${hourNames[nextH]}`;
+            if (minutes === 50) return `tio i ${hourNames[nextH]}`;
+            if (minutes === 55) return `fem i ${hourNames[nextH]}`;
 
-    // Alla nummer mellan 1-29 stavas ut för minut-precisionen
-    const numWords = ["", "en", "två", "tre", "fyra", "fem", "sex", "sju", "åtta", "nio", "tio", "elva", "tolv", "tretton", "fjorton", "femton", "sexton", "sjutton", "arton", "nitton", "tjugo", "tjugoen", "tjugotvå", "tjugotre", "tjugofyra"];
-    const getMinStr = (num) => `${numWords[num]} ${num === 1 ? "minut" : "minuter"}`;
+            const numWords = ["", "en", "två", "tre", "fyra", "fem", "sex", "sju", "åtta", "nio", "tio", "elva", "tolv", "tretton", "fjorton", "femton", "sexton", "sjutton", "arton", "nitton", "tjugo", "tjugoen", "tjugotvå", "tjugotre", "tjugofyra"];
+            const getMinStr = (num) => `${numWords[num]} ${num === 1 ? "minut" : "minuter"}`;
 
-    // Dynamisk beräkning ner på minuten baserat på svensk klocklogik
-    if (minutes > 0 && minutes < 25) {
-        if (minutes > 20) return `${getMinStr(30 - minutes)} i halv ${hourNames[nextH]}`;
-        return `${getMinStr(minutes)} över ${hourNames[h]}`;
-    } else if (minutes > 25 && minutes < 30) {
-        return `${getMinStr(30 - minutes)} i halv ${hourNames[nextH]}`;
-    } else if (minutes > 30 && minutes < 35) {
-        return `${getMinStr(minutes - 30)} över halv ${hourNames[nextH]}`;
-    } else if (minutes > 35 && minutes < 45) {
-        if (minutes < 40) return `${getMinStr(minutes - 30)} över halv ${hourNames[nextH]}`;
-        return `${getMinStr(60 - minutes)} i ${hourNames[nextH]}`;
-    } else if (minutes > 45) {
-        return `${getMinStr(60 - minutes)} i ${hourNames[nextH]}`;
-    }
-};
+            if (minutes > 0 && minutes < 25) {
+                if (minutes > 20) return `${getMinStr(30 - minutes)} i halv ${hourNames[nextH]}`;
+                return `${getMinStr(minutes)} över ${hourNames[h]}`;
+            } else if (minutes > 25 && minutes < 30) {
+                return `${getMinStr(30 - minutes)} i halv ${hourNames[nextH]}`;
+            } else if (minutes > 30 && minutes < 35) {
+                return `${getMinStr(minutes - 30)} över halv ${hourNames[nextH]}`;
+            } else if (minutes > 35 && minutes < 45) {
+                if (minutes < 40) return `${getMinStr(minutes - 30)} över halv ${hourNames[nextH]}`;
+                return `${getMinStr(60 - minutes)} i ${hourNames[nextH]}`;
+            } else if (minutes > 45) {
+                return `${getMinStr(60 - minutes)} i ${hourNames[nextH]}`;
+            }
+        };
 
         const AnalogClock = ({ date, size = 100 }) => {
             const sDeg = date.getSeconds() * 6;
@@ -125,13 +130,563 @@
                         </div>
                     ))}
                     <div className="absolute top-1/2 left-1/2 w-3 h-3 bg-slate-900 rounded-full -translate-x-1/2 -translate-y-1/2 z-20 border-2 border-white shadow-sm"></div>
-                    <div className="absolute top-1/2 left-1/2 w-1.5 h-[28%] bg-red-600 rounded-full origin-bottom -translate-x-1/2 -translate-y-full z-10" style={{ transform: `translateX(-50%) translateY(-100%) rotate(${hDeg}deg)` }}></div>
-                    <div className="absolute top-1/2 left-1/2 w-1 h-[38%] bg-blue-600 rounded-full origin-bottom -translate-x-1/2 -translate-y-full z-10" style={{ transform: `translateX(-50%) translateY(-100%) rotate(${mDeg}deg)` }}></div>
+                    <div className="absolute top-1/2 left-1/2 w-1.5 h-[28%] bg-red-600 rounded-full origin-bottom -translate-x-1/2 -translate-y-full z-10 transition-transform duration-300 ease-in-out" style={{ transform: `translateX(-50%) translateY(-100%) rotate(${hDeg}deg)` }}></div>
+                    <div className="absolute top-1/2 left-1/2 w-1 h-[38%] bg-blue-600 rounded-full origin-bottom -translate-x-1/2 -translate-y-full z-10 transition-transform duration-300 ease-in-out" style={{ transform: `translateX(-50%) translateY(-100%) rotate(${mDeg}deg)` }}></div>
                 </div>
             );
         };
 
-        function ParentUI({ activities, db, appId, user }) {
+        // --- THEMES FOR CALENDAR ---
+        const monthThemes = [
+            { name: "Januari", emoji: "❄️", bgEmoji: "⛄", gradient: "bg-gradient-to-br from-blue-400 to-blue-600", text: "text-blue-600" },
+            { name: "Februari", emoji: "⛄", bgEmoji: "🎿", gradient: "bg-gradient-to-br from-cyan-400 to-blue-500", text: "text-cyan-600" },
+            { name: "Mars", emoji: "🌱", bgEmoji: "☀️", gradient: "bg-gradient-to-br from-emerald-400 to-green-500", text: "text-emerald-600" },
+            { name: "April", emoji: "🐣", bgEmoji: "🌷", gradient: "bg-gradient-to-br from-green-400 to-lime-500", text: "text-green-600" },
+            { name: "Maj", emoji: "🌸", bgEmoji: "🐝", gradient: "bg-gradient-to-br from-pink-400 to-rose-500", text: "text-pink-600" },
+            { name: "Juni", emoji: "🍓", bgEmoji: "☀️", gradient: "bg-gradient-to-br from-yellow-400 to-orange-400", text: "text-yellow-600" },
+            { name: "Juli", emoji: "🏖️", bgEmoji: "🍦", gradient: "bg-gradient-to-br from-orange-400 to-red-400", text: "text-orange-600" },
+            { name: "Augusti", emoji: "🍉", bgEmoji: "🌻", gradient: "bg-gradient-to-br from-red-400 to-rose-600", text: "text-red-600" },
+            { name: "September", emoji: "🍂", bgEmoji: "🍄", gradient: "bg-gradient-to-br from-amber-500 to-orange-600", text: "text-amber-700" },
+            { name: "Oktober", emoji: "🎃", bgEmoji: "👻", gradient: "bg-gradient-to-br from-orange-500 to-red-600", text: "text-orange-700" },
+            { name: "November", emoji: "🌧️", bgEmoji: "☕", gradient: "bg-gradient-to-br from-slate-400 to-slate-600", text: "text-slate-600" },
+            { name: "December", emoji: "🎄", bgEmoji: "🎅", gradient: "bg-gradient-to-br from-red-500 to-green-600", text: "text-red-700" }
+        ];
+
+        const dayStyles = [
+            { name: "Mån", full: "Måndag", colorCode: "#4CAF50", main: "bg-[#4CAF50] text-white shadow-md", light: "bg-green-50 text-green-800 border-green-200", outline: "border-[#4CAF50]" },
+            { name: "Tis", full: "Tisdag", colorCode: "#2196F3", main: "bg-[#2196F3] text-white shadow-md", light: "bg-blue-50 text-blue-800 border-blue-200", outline: "border-[#2196F3]" },
+            { name: "Ons", full: "Onsdag", colorCode: "#94a3b8", main: "bg-slate-400 text-white shadow-md", light: "bg-slate-50 text-slate-700 border-slate-200", outline: "border-slate-400" },
+            { name: "Tor", full: "Torsdag", colorCode: "#8D6E63", main: "bg-[#8D6E63] text-white shadow-md", light: "bg-[#EFEBE9] text-[#5D4037] border-[#D7CCC8]", outline: "border-[#8D6E63]" },
+            { name: "Fre", full: "Fredag", colorCode: "#D4C42C", main: "bg-[#FFEB3B] text-slate-800 shadow-md", light: "bg-yellow-50 text-yellow-900 border-yellow-200", outline: "border-[#FFEB3B]" },
+            { name: "Lör", full: "Lördag", colorCode: "#E91E63", main: "bg-[#E91E63] text-white shadow-md", light: "bg-pink-50 text-pink-900 border-pink-200", outline: "border-[#E91E63]" },
+            { name: "Sön", full: "Söndag", colorCode: "#F44336", main: "bg-[#F44336] text-white shadow-md", light: "bg-red-50 text-red-900 border-red-200", outline: "border-[#F44336]" }
+        ];
+
+        // --- CALENDAR COMPONENT ---
+        const CalendarCard = ({ date }) => {
+            const [viewDate, setViewDate] = useState(() => new Date(date.getFullYear(), date.getMonth(), 1));
+
+            const viewYear = viewDate.getFullYear();
+            const viewMonth = viewDate.getMonth();
+            const realYear = date.getFullYear();
+            const realMonth = date.getMonth();
+            const realToday = date.getDate();
+
+            const isCurrentMonthView = viewYear === realYear && viewMonth === realMonth;
+            const theme = monthThemes[viewMonth];
+            
+            const containerRef = useRef(null);
+            const todayCellRef = useRef(null);
+            const todayBoxRef = useRef(null);
+            const [arrowPath, setArrowPath] = useState('');
+            
+            const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+            const firstDayOfMonth = new Date(viewYear, viewMonth, 1).getDay();
+            const startOffset = firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1;
+            
+            const realStartOffset = new Date(realYear, realMonth, 1).getDay() === 0 ? 6 : new Date(realYear, realMonth, 1).getDay() - 1;
+            const todayStyle = dayStyles[(realStartOffset + realToday - 1) % 7];
+
+            const handlePrevMonth = () => setViewDate(new Date(viewYear, viewMonth - 1, 1));
+            const handleNextMonth = () => setViewDate(new Date(viewYear, viewMonth + 1, 1));
+            const handleResetToToday = () => setViewDate(new Date(realYear, realMonth, 1));
+
+            useEffect(() => {
+                const updatePath = () => {
+                    if (!isCurrentMonthView || !containerRef.current || !todayCellRef.current || !todayBoxRef.current) {
+                        setArrowPath('');
+                        return;
+                    }
+                    const containerRect = containerRef.current.getBoundingClientRect();
+                    const cellRect = todayCellRef.current.getBoundingClientRect();
+                    const boxRect = todayBoxRef.current.getBoundingClientRect();
+
+                    const targetX = cellRect.left + cellRect.width / 2 - containerRect.left;
+                    const targetY = cellRect.bottom - containerRect.top + 8;
+
+                    const sourceX = boxRect.left + boxRect.width / 2 - containerRect.left;
+                    const sourceY = boxRect.top - containerRect.top - 8;
+
+                    const cp1X = sourceX;
+                    const cp1Y = sourceY - Math.max(40, Math.abs(sourceY - targetY) / 2);
+                    const cp2X = targetX;
+                    const cp2Y = targetY + Math.max(40, Math.abs(sourceY - targetY) / 2);
+
+                    setArrowPath(`M ${sourceX} ${sourceY} C ${cp1X} ${cp1Y}, ${cp2X} ${cp2Y}, ${targetX} ${targetY}`);
+                };
+
+                updatePath();
+                const timeoutId = setTimeout(updatePath, 150);
+                window.addEventListener('resize', updatePath);
+                return () => { clearTimeout(timeoutId); window.removeEventListener('resize', updatePath); };
+            }, [date, viewDate, isCurrentMonthView]);
+
+            return (
+                <div ref={containerRef} className="bg-white rounded-[2.5rem] shadow-xl overflow-hidden border-4 border-slate-200 relative transition-colors duration-500">
+                    {isCurrentMonthView && (
+                        <svg className="absolute inset-0 w-full h-full pointer-events-none z-20" style={{ minHeight: '100%' }}>
+                            <defs>
+                                <marker id="dynamic-arrowhead" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto">
+                                    <polygon points="0 0, 6 2, 0 4" fill={todayStyle.colorCode} />
+                                </marker>
+                            </defs>
+                            {arrowPath && (
+                                <path 
+                                    d={arrowPath} 
+                                    stroke={todayStyle.colorCode} 
+                                    strokeWidth="4" 
+                                    fill="none" 
+                                    markerEnd="url(#dynamic-arrowhead)" 
+                                    className="animate-flow opacity-80" 
+                                    strokeLinecap="round" 
+                                />
+                            )}
+                        </svg>
+                    )}
+
+                    <div className={`${theme.gradient} h-32 sm:h-40 flex items-center justify-center relative overflow-hidden border-b-4 border-slate-200 z-10 transition-colors duration-500`}>
+                        <span className="text-6xl sm:text-7xl transform hover:scale-110 transition-transform drop-shadow-xl relative z-10">{theme.emoji}</span>
+                        <div className="absolute opacity-20 text-[8rem] -right-10 -bottom-10 select-none pointer-events-none">{theme.bgEmoji}</div>
+                        <div className="absolute opacity-20 text-[6rem] -left-10 -top-5 select-none pointer-events-none transform -scale-x-100">{theme.bgEmoji}</div>
+                    </div>
+                    
+                    <div className="p-4 sm:p-8 flex flex-col items-center bg-white relative z-10">
+                        <div className={`absolute -top-6 ${theme.gradient} text-white px-4 sm:px-6 py-2 rounded-full font-black uppercase tracking-widest shadow-md border-4 border-white flex items-center gap-4 sm:gap-6 transition-colors duration-500`}>
+                            <button onClick={handlePrevMonth} className="hover:scale-125 transition-transform p-1 cursor-pointer">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                            </button>
+                            <span className="min-w-[120px] text-center">{theme.name} {viewYear}</span>
+                            <button onClick={handleNextMonth} className="hover:scale-125 transition-transform p-1 cursor-pointer">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                            </button>
+                        </div>
+                        
+                        <div className="w-full mt-6">
+                            <div className="grid grid-cols-7 gap-1 sm:gap-2 mb-3 text-center">
+                                {dayStyles.map(style => (
+                                    <div key={style.name} className={`${style.main} py-2 rounded-lg text-[10px] sm:text-xs font-black uppercase tracking-wider`}>
+                                        {style.name}
+                                    </div>
+                                ))}
+                            </div>
+                            
+                            <div className="grid grid-cols-7 gap-1 sm:gap-2 text-center">
+                                {Array.from({ length: startOffset }).map((_, i) => (
+                                    <div key={`empty-${i}`} className="p-2 sm:p-3"></div>
+                                ))}
+                                {Array.from({ length: daysInMonth }).map((_, i) => {
+                                    const dayNum = i + 1;
+                                    const isToday = isCurrentMonthView && dayNum === realToday;
+                                    let isPast = false;
+                                    if (viewYear < realYear || (viewYear === realYear && viewMonth < realMonth)) {
+                                        isPast = true;
+                                    } else if (isCurrentMonthView && dayNum < realToday) {
+                                        isPast = true;
+                                    }
+                                    const colIndex = (startOffset + i) % 7;
+                                    const dayStyle = dayStyles[colIndex];
+                                    
+                                    return (
+                                        <div key={dayNum} 
+                                            ref={isToday ? todayCellRef : null}
+                                            className={`
+                                                p-2 sm:p-3 rounded-xl sm:rounded-2xl flex flex-col items-center justify-center font-clock text-sm sm:text-xl transition-all border-2 relative
+                                                ${isToday ? `${dayStyle.main} transform scale-[1.15] z-30 shadow-xl border-white` : dayStyle.light}
+                                                ${isPast ? 'opacity-30 grayscale-[50%]' : 'opacity-100'}
+                                            `}>
+                                            {dayNum}
+                                            {isToday && <div className="w-1.5 h-1.5 bg-white rounded-full mt-1 sm:mt-1.5 animate-pulse"></div>}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                        
+                        <div className="flex flex-col items-center w-full relative z-30 mt-8">
+                            <div ref={todayBoxRef} className={`px-8 py-3 rounded-full border-4 ${todayStyle.outline} ${todayStyle.light} shadow-md flex items-center gap-3`}>
+                                <span className="font-bold text-slate-500 uppercase tracking-widest text-xs relative z-10">Idag är det:</span>
+                                <span className="font-black text-lg uppercase font-clock relative z-10">{todayStyle.full}</span>
+                            </div>
+                            
+                            {!isCurrentMonthView && (
+                                <button 
+                                    onClick={handleResetToToday}
+                                    className="mt-4 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold uppercase text-xs py-2 px-6 rounded-full transition-colors border-2 border-slate-300 flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                                    Gå tillbaka till idag
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- NEW COMPONENT: INTERACTIVE DRAGGABLE CLOCK ---
+        const InteractiveClock = ({ time, setTime, onDoubleClick }) => {
+            const svgRef = useRef(null);
+            const [isDragging, setIsDragging] = useState(false);
+            const [lastAngle, setLastAngle] = useState(0);
+
+            const getAngle = (clientX, clientY) => {
+                if (!svgRef.current) return 0;
+                const rect = svgRef.current.getBoundingClientRect();
+                const cx = rect.left + rect.width / 2;
+                const cy = rect.top + rect.height / 2;
+                // Räkna ut vinkeln (0 grader = kl 12)
+                let angle = Math.atan2(clientY - cy, clientX - cx) * (180 / Math.PI);
+                angle = angle + 90; 
+                if (angle < 0) angle += 360;
+                return angle;
+            };
+
+            const handlePointerDown = (e) => {
+                setIsDragging(true);
+                setLastAngle(getAngle(e.clientX, e.clientY));
+                e.target.setPointerCapture(e.pointerId);
+            };
+
+            const handlePointerMove = (e) => {
+                if (!isDragging) return;
+                const currentAngle = getAngle(e.clientX, e.clientY);
+                let diff = currentAngle - lastAngle;
+                
+                // Hantera övergången över kl 12 (från 359 till 0 grader)
+                if (diff > 180) diff -= 360;
+                if (diff < -180) diff += 360;
+
+                // 6 grader = 1 minut (Eftersom 360 grader / 60 minuter = 6)
+                setTime(prev => prev + (diff / 6) * 60000);
+                setLastAngle(currentAngle);
+            };
+
+            const handlePointerUp = (e) => {
+                setIsDragging(false);
+                e.target.releasePointerCapture(e.pointerId);
+                // Snäpp till närmaste minut när man släpper taget
+                setTime(prev => Math.round(prev / 60000) * 60000);
+            };
+
+            const dDate = new Date(time);
+            const hDeg = (dDate.getHours() % 12) * 30 + dDate.getMinutes() * 0.5;
+            const mDeg = dDate.getMinutes() * 6 + dDate.getSeconds() * 0.1;
+
+            return (
+                <div className="relative flex flex-col items-center">
+                    <svg 
+                        ref={svgRef}
+                        width="100%" height="100%" viewBox="0 0 280 280"
+                        className="touch-none bg-white rounded-full border-[8px] sm:border-[12px] border-slate-900 shadow-2xl cursor-pointer w-64 h-64 sm:w-80 sm:h-80"
+                        onPointerDown={handlePointerDown}
+                        onPointerMove={handlePointerMove}
+                        onPointerUp={handlePointerUp}
+                        onPointerCancel={handlePointerUp}
+                        onDoubleClick={onDoubleClick}
+                    >
+                        {/* Tick marks */}
+                        {Array.from({length: 60}).map((_, i) => {
+                            const angle = i * 6 - 90;
+                            const isHour = i % 5 === 0;
+                            const rad = angle * Math.PI / 180;
+                            const outerR = 130;
+                            const innerR = isHour ? 115 : 125;
+                            return (
+                                <line key={i}
+                                    x1={140 + innerR * Math.cos(rad)}
+                                    y1={140 + innerR * Math.sin(rad)}
+                                    x2={140 + outerR * Math.cos(rad)}
+                                    y2={140 + outerR * Math.sin(rad)}
+                                    stroke={isHour ? "#334155" : "#cbd5e1"}
+                                    strokeWidth={isHour ? 4 : 2}
+                                />
+                            );
+                        })}
+                        
+                        {/* Numbers */}
+                        {[1,2,3,4,5,6,7,8,9,10,11,12].map(num => {
+                            const angle = num * 30 - 90;
+                            const rad = angle * Math.PI / 180;
+                            return (
+                                <text key={num}
+                                    x={140 + 95 * Math.cos(rad)}
+                                    y={140 + 95 * Math.sin(rad)}
+                                    textAnchor="middle"
+                                    dominantBaseline="central"
+                                    className="text-2xl font-black fill-slate-400 font-clock select-none"
+                                >{num}</text>
+                            );
+                        })}
+
+                        {/* Hour Hand */}
+                        <g transform={`rotate(${hDeg} 140 140)`} style={{filter: "drop-shadow(2px 4px 4px rgba(0,0,0,0.2))"}}>
+                            <line x1="140" y1="140" x2="140" y2="75" stroke="#dc2626" strokeWidth="12" strokeLinecap="round" />
+                        </g>
+                        
+                        {/* Minute Hand */}
+                        <g transform={`rotate(${mDeg} 140 140)`} style={{filter: "drop-shadow(2px 6px 6px rgba(0,0,0,0.3))"}}>
+                            <line x1="140" y1="140" x2="140" y2="35" stroke="#2563eb" strokeWidth="8" strokeLinecap="round" />
+                        </g>
+                        
+                        {/* Center Dot */}
+                        <circle cx="140" cy="140" r="12" fill="#0f172a" />
+                        <circle cx="140" cy="140" r="5" fill="#ffffff" />
+                    </svg>
+                </div>
+            )
+        };
+
+        // --- LEARN CLOCK COMPONENT ---
+        const LearnClock = () => {
+            const [simTimeMs, setSimTimeMs] = useState(() => {
+                const d = new Date();
+                d.setSeconds(0);
+                d.setMilliseconds(0);
+                return d.getTime();
+            });
+
+            // Funktion för att nollställa klockan till nutid
+            const handleResetToNow = () => {
+                const d = new Date();
+                d.setSeconds(0);
+                d.setMilliseconds(0);
+                setSimTimeMs(d.getTime());
+            };
+
+            const currentSimDate = new Date(simTimeMs);
+
+            return (
+                <div className="bg-white p-6 sm:p-10 rounded-[3rem] border-4 border-blue-200 shadow-2xl flex flex-col items-center text-center mt-12 overflow-hidden relative">
+                    <div className="absolute top-0 left-0 w-full h-4 bg-gradient-to-r from-blue-400 to-indigo-400"></div>
+                    
+                    <div className="bg-blue-50 text-blue-800 px-6 py-2 rounded-full font-black uppercase text-xs sm:text-sm border-2 border-blue-200 shadow-sm mt-4 mb-2 flex items-center gap-2">
+                        👆 Snurra visarna (dubbelklicka för rätt tid)!
+                    </div>
+                    <h3 className="text-slate-400 font-black uppercase tracking-widest text-sm font-clock mb-8 sm:mb-12">Interaktiv Klocka</h3>
+                    
+                    <InteractiveClock time={simTimeMs} setTime={setSimTimeMs} onDoubleClick={handleResetToNow} />
+                    
+                    <div className="text-[5.5rem] sm:text-[7rem] font-clock text-slate-800 mt-12 mb-6 leading-none tracking-tighter drop-shadow-sm">
+                        {String(currentSimDate.getHours()).padStart(2, '0')}:{String(currentSimDate.getMinutes()).padStart(2, '0')}
+                    </div>
+                    
+                    <div className="bg-blue-50 text-blue-700 px-6 sm:px-10 py-4 sm:py-5 rounded-3xl font-black uppercase text-xl sm:text-2xl border-4 border-blue-100 font-clock w-full shadow-inner tracking-wider">
+                        {getSwedishTimeWords(currentSimDate)}
+                    </div>
+                </div>
+            );
+        };
+
+        // --- FLYING COIN ANIMATION COMPONENT ---
+        const FlyingCoin = ({ coin }) => {
+            const [pos, setPos] = useState({ left: coin.startX, top: coin.startY, scale: 1, opacity: 1 });
+            
+            useEffect(() => {
+                const timer = setTimeout(() => {
+                    setPos({ left: coin.startX + coin.tx, top: coin.startY + coin.ty, scale: 0.2, opacity: 0 });
+                }, 50); // Liten delay så den hinner renderas innan den flyger
+                return () => clearTimeout(timer);
+            }, [coin]);
+
+            return (
+                <div className="fixed z-[9999] pointer-events-none transition-all duration-[800ms] ease-in-out flex items-center justify-center font-black text-xl sm:text-2xl bg-yellow-400 text-yellow-900 border-4 border-yellow-500 rounded-full w-14 h-14 sm:w-16 sm:h-16 shadow-[0_0_20px_rgba(250,204,21,0.8)]"
+                     style={{ left: pos.left - 28, top: pos.top - 28, transform: `scale(${pos.scale})`, opacity: pos.opacity }}>
+                     +{coin.amount}
+                </div>
+            );
+        };
+
+        // --- COMPONENT: EARN MONEY (QUESTS) ---
+        const EarnMoneyTab = ({ addMoney, bankBalance }) => {
+            const [readTime, setReadTime] = useState(0);
+            const [isReading, setIsReading] = useState(false);
+            const [walkTime, setWalkTime] = useState(0);
+            const [isWalking, setIsWalking] = useState(false);
+            const [flyingCoins, setFlyingCoins] = useState([]);
+
+            const fastQuests = [
+                { id: 'q1', title: "Hjälpa till med disken", reward: 15, icon: "🍽️" },
+                { id: 'q2', title: "Städa ditt rum", reward: 20, icon: "🧹" },
+                { id: 'q3', title: "Ta ut soporna", reward: 5, icon: "🗑️" }
+            ];
+
+            useEffect(() => {
+                let interval = null;
+                if (isReading) {
+                    interval = setInterval(() => setReadTime(t => t + 1), 1000);
+                } else if (isWalking) {
+                    interval = setInterval(() => setWalkTime(t => t + 1), 1000);
+                }
+                return () => clearInterval(interval);
+            }, [isReading, isWalking]);
+
+            const formatTimer = (totalSeconds) => {
+                const m = Math.floor(totalSeconds / 60);
+                const s = totalSeconds % 60;
+                return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+            };
+
+            const handleReadAction = () => {
+                if (!isReading && readTime === 0) setIsReading(true);
+                else if (isReading) setIsReading(false);
+                else setIsReading(true);
+            };
+
+            const handleClaim = (amount, e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                const startX = rect.left + rect.width / 2;
+                const startY = rect.top + rect.height / 2;
+                const id = Date.now() + Math.random();
+
+                const bankEl = document.getElementById('adrians-bank-balance');
+                let tx = 0;
+                let ty = -500;
+                if (bankEl) {
+                    const bankRect = bankEl.getBoundingClientRect();
+                    tx = (bankRect.left + bankRect.width / 2) - startX;
+                    ty = (bankRect.top + bankRect.height / 2) - startY;
+                }
+
+                setFlyingCoins(prev => [...prev, { id, amount, startX, startY, tx, ty }]);
+
+                setTimeout(() => {
+                    setFlyingCoins(prev => prev.filter(c => c.id !== id));
+                    addMoney(amount);
+                }, 800);
+            };
+
+            const readableTens = Math.floor(readTime / 600);
+            const readReward = readableTens * 10;
+
+            const claimReadReward = (e) => {
+                if (readReward > 0) {
+                    handleClaim(readReward, e);
+                    setReadTime(readTime - (readableTens * 600));
+                }
+            };
+
+            const walkEarned = Math.floor(walkTime / 60);
+            
+            const handleWalkAction = (e) => {
+                if (!isWalking) {
+                    setIsWalking(true);
+                } else {
+                    if (walkEarned > 0) handleClaim(walkEarned, e);
+                    setIsWalking(false);
+                    setWalkTime(0);
+                }
+            };
+
+            return (
+                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    {flyingCoins.map(c => <FlyingCoin key={c.id} coin={c} />)}
+
+                    <div id="adrians-bank-balance" className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl p-8 shadow-2xl border-4 border-slate-700 text-white relative overflow-hidden">
+                        <div className="absolute top-0 right-0 opacity-10 text-[10rem] -mt-10 -mr-10 pointer-events-none select-none">💳</div>
+                        
+                        <div className="flex justify-between items-start relative z-10 mb-8">
+                            <h2 className="text-xl font-black text-slate-400 uppercase tracking-widest">Adrians Bank</h2>
+                            <div className="w-12 h-10 bg-yellow-400 rounded-md border-2 border-yellow-500 flex flex-col justify-center gap-1 p-1 shadow-inner">
+                                <div className="w-full h-[2px] bg-yellow-600"></div>
+                                <div className="w-full h-[2px] bg-yellow-600"></div>
+                                <div className="w-full h-[2px] bg-yellow-600"></div>
+                            </div>
+                        </div>
+
+                        <p className="text-slate-500 font-bold uppercase tracking-widest text-xs mb-1 relative z-10">Tillgängligt Saldo</p>
+                        <div className="text-7xl font-clock text-white mb-2 relative z-10 flex items-baseline gap-2">
+                            {bankBalance} <span className="text-3xl text-slate-400">kr</span>
+                        </div>
+                    </div>
+
+                    {/* Liten text för att undvika tomhet nu när läsaren är borta */}
+                    <div className="bg-emerald-50 border-2 border-emerald-200 p-4 rounded-2xl flex items-center gap-4 shadow-sm">
+                        <span className="text-3xl">💰</span>
+                        <p className="font-bold text-emerald-800 text-sm">Välj ett uppdrag nedan och börja tjäna egna pengar!</p>
+                    </div>
+
+                    <h3 className="text-slate-400 font-black uppercase tracking-widest px-4 text-sm font-clock mt-8 mb-4">Snabba Uppdrag</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
+                        {fastQuests.map(q => (
+                             <div key={q.id} onClick={(e) => handleClaim(q.reward, e)} className="bg-white p-6 rounded-3xl border-4 border-slate-200 shadow-md flex justify-between items-center active:scale-95 transition-transform cursor-pointer hover:border-emerald-300 group">
+                                 <div className="flex items-center gap-4">
+                                     <span className="text-4xl group-hover:scale-110 transition-transform">{q.icon}</span>
+                                     <span className="font-black text-slate-700 uppercase text-sm sm:text-base leading-tight">{q.title}</span>
+                                 </div>
+                                 <div className="bg-emerald-100 text-emerald-700 font-black px-4 py-2 rounded-full border-2 border-emerald-200 flex-shrink-0">
+                                    +{q.reward} kr
+                                 </div>
+                             </div>
+                        ))}
+                    </div>
+
+                    <h3 className="text-slate-400 font-black uppercase tracking-widest px-4 text-sm font-clock mt-8 mb-4">Fokus & Rörelse</h3>
+
+                    <div className={`rounded-[2.5rem] p-6 sm:p-8 shadow-xl border-4 relative overflow-hidden transition-colors duration-500 ${isReading ? 'bg-orange-50 border-orange-300' : 'bg-white border-slate-200'}`}>
+                        <div className="flex items-center gap-4 mb-6">
+                            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-4xl shadow-md ${isReading ? 'bg-orange-400 animate-pulse' : 'bg-slate-100'}`}>📖</div>
+                            <div>
+                                <h4 className="text-2xl font-black text-slate-800 uppercase tracking-wide">Läs en bok</h4>
+                                <p className="text-slate-500 font-bold text-sm">Läs hur länge du vill. Du tjänar 10 kr för varje 10 minuter.</p>
+                            </div>
+                        </div>
+
+                        <div className="bg-slate-800 text-white rounded-2xl p-6 flex flex-col items-center mb-6 shadow-inner">
+                            <span className="text-6xl font-clock font-black tracking-widest">{formatTimer(readTime)}</span>
+                            <div className="mt-4 text-center h-12 flex items-center justify-center">
+                                {readReward > 0 
+                                   ? <span className="text-green-400 font-black uppercase text-lg animate-bounce">Du har tjänat {readReward} kr!</span>
+                                   : <span className="text-slate-400 font-bold uppercase text-sm">Läs i 10 min för att tjäna 10 kr</span>
+                                }
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row gap-3">
+                            <button 
+                                onClick={handleReadAction} 
+                                className={`flex-1 py-4 rounded-xl font-black uppercase tracking-widest shadow-md transition-all active:scale-95 border-2 ${isReading ? 'bg-orange-100 text-orange-700 border-orange-300' : 'bg-blue-600 text-white border-blue-700 hover:bg-blue-500'}`}
+                            >
+                                {readTime === 0 ? '▶ Starta Timer' : isReading ? '⏸ Pausa' : '▶ Fortsätt läsa'}
+                            </button>
+
+                            {readReward > 0 && (
+                                <button onClick={claimReadReward} className="flex-1 py-4 bg-yellow-400 hover:bg-yellow-300 text-slate-900 rounded-xl font-black uppercase tracking-widest shadow-md transition-all active:scale-95 border-2 border-yellow-500 animate-in zoom-in">
+                                    💰 Hämta {readReward} kr!
+                                </button>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className={`rounded-[2.5rem] p-6 sm:p-8 shadow-xl border-4 relative overflow-hidden transition-colors duration-500 ${isWalking ? 'bg-green-50 border-green-300' : 'bg-white border-slate-200'}`}>
+                        <div className="flex items-center gap-4 mb-6">
+                            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-4xl shadow-md ${isWalking ? 'bg-green-400 animate-bounce' : 'bg-slate-100'}`}>🚶‍♂️</div>
+                            <div>
+                                <h4 className="text-2xl font-black text-slate-800 uppercase tracking-wide">Ta en promenad</h4>
+                                <p className="text-slate-500 font-bold text-sm">Gå ut och rör på dig. Tjäna 1 kr per minut.</p>
+                            </div>
+                        </div>
+
+                        <div className="bg-slate-800 text-white rounded-2xl p-6 flex flex-col items-center mb-6 shadow-inner">
+                            <span className="text-6xl font-clock font-black tracking-widest">{formatTimer(walkTime)}</span>
+                            <div className="mt-4 text-center bg-slate-900 px-6 py-2 rounded-full border-2 border-slate-600">
+                                <span className="text-slate-400 font-bold uppercase text-xs mr-2">Du har tjänat:</span>
+                                <span className="text-green-400 font-black text-xl">+{walkEarned} kr</span>
+                            </div>
+                        </div>
+
+                        <button 
+                            onClick={handleWalkAction} 
+                            className={`w-full py-4 rounded-xl font-black uppercase tracking-widest shadow-md transition-all active:scale-95 border-2 ${isWalking ? 'bg-green-500 text-white border-green-600 hover:bg-green-400' : 'bg-blue-600 text-white border-blue-700 hover:bg-blue-500'}`}
+                        >
+                            {!isWalking ? '▶ Börja gå!' : `⏹ Avsluta & Hämta ${walkEarned} kr`}
+                        </button>
+                    </div>
+
+                </div>
+            );
+        };
+
+        // --- PARENT UI ---
+        function ParentUI({ activities, bankBalance, addMoney, db, appId, user, onLogout }) {
             const [showAddForm, setShowAddForm] = useState(false);
             const [newTitle, setNewTitle] = useState('');
             const [newDate, setNewDate] = useState(new Date().toISOString().split('T')[0]);
@@ -171,10 +726,7 @@
                 if (!user) return;
                 const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'schedule_items', activity.id);
                 const shiftMs = mins * 60 * 1000;
-                await updateDoc(docRef, {
-                    startTime: activity.startTime + shiftMs,
-                    endTime: activity.endTime + shiftMs
-                });
+                await updateDoc(docRef, { startTime: activity.startTime + shiftMs, endTime: activity.endTime + shiftMs });
             };
 
             const grouped = activities.reduce((acc, a) => {
@@ -185,9 +737,27 @@
             }, {});
 
             return (
-                <div className="space-y-8 mt-8">
-                    <h1 className="text-xl font-black uppercase tracking-widest text-slate-800 border-b-2 border-slate-200 pb-2">Admin Control</h1>
-                    
+                <div className="space-y-8 mt-4">
+                    <div className="flex justify-between items-center border-b-2 border-slate-200 pb-4">
+                        <h1 className="text-xl font-black uppercase tracking-widest text-slate-800">Admin Control</h1>
+                        <button onClick={onLogout} className="py-2 px-4 bg-slate-200 text-slate-600 rounded-full shadow-sm hover:bg-slate-300 active:scale-95 flex items-center gap-2 transition-all">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                            <span className="font-bold text-xs uppercase tracking-widest">Byt användare</span>
+                        </button>
+                    </div>
+
+                    <div className="bg-slate-800 border-4 border-slate-700 p-6 sm:p-8 rounded-3xl shadow-xl text-white">
+                        <h2 className="font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">💳 Adrians Virtuella Bank</h2>
+                        <div className="text-6xl font-clock font-black mb-6">{bankBalance} <span className="text-2xl text-slate-400">kr</span></div>
+                        <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mb-3">Justera saldo (T.ex. vid köp)</p>
+                        <div className="grid grid-cols-4 gap-2">
+                            <button onClick={() => addMoney(-10)} className="bg-red-500/20 text-red-400 border-2 border-red-500/50 hover:bg-red-500/40 p-3 rounded-xl font-black uppercase text-sm transition-all">-10</button>
+                            <button onClick={() => addMoney(-50)} className="bg-red-500/20 text-red-400 border-2 border-red-500/50 hover:bg-red-500/40 p-3 rounded-xl font-black uppercase text-sm transition-all">-50</button>
+                            <button onClick={() => addMoney(10)} className="bg-green-500/20 text-green-400 border-2 border-green-500/50 hover:bg-green-500/40 p-3 rounded-xl font-black uppercase text-sm transition-all">+10</button>
+                            <button onClick={() => addMoney(50)} className="bg-green-500/20 text-green-400 border-2 border-green-500/50 hover:bg-green-500/40 p-3 rounded-xl font-black uppercase text-sm transition-all">+50</button>
+                        </div>
+                    </div>
+
                     {showAddForm ? (
                         <form onSubmit={handleAdd} className="bg-white p-6 rounded-3xl border-2 border-slate-200 shadow-xl space-y-4">
                             <input type="text" value={newTitle} onChange={e => setNewTitle(e.target.value)} className="w-full p-3 bg-slate-50 border rounded-xl font-bold" placeholder={isLiveEvent ? "Steal a brainroth" : "Uppdragsnamn..."} />
@@ -241,7 +811,10 @@
             );
         }
 
-        function ChildUI({ activities, currentTime }) {
+        // --- CHILD UI (WITH TABS) ---
+        function ChildUI({ activities, currentTime, bankBalance, addMoney, db, appId, onLogout, changeRole, notifsEnabled, enableNotifs, bedtimeInfo }) {
+            const [activeTab, setActiveTab] = useState('schema');
+            
             const now = currentTime.getTime();
             const activeAndFuture = activities.filter(a => a.endTime > now && (a.startTime - now) < 24*60*60*1000);
             const current = activeAndFuture.find(a => a.startTime <= now && a.endTime > now);
@@ -256,74 +829,117 @@
             };
 
             return (
-                <div className="space-y-12 mt-8">
-                    {current && (
-                        <div className="bg-white rounded-[3rem] p-10 border-4 border-blue-200 shadow-xl flex flex-col items-center">
-                            <div className="bg-blue-50 text-blue-600 px-6 py-2 rounded-full font-black uppercase text-sm mb-6 tracking-widest border-2 border-blue-100 font-clock">Aktivt Uppdrag</div>
-                            <h2 className="text-5xl font-black text-slate-900 mb-8 uppercase text-center leading-tight">{current.title}</h2>
-                            <div className="w-full bg-slate-50 p-8 rounded-[2.5rem] border-2 border-slate-100 flex flex-col items-center shadow-inner">
-                                <div className="text-slate-400 font-black uppercase text-xs mb-4">Tid kvar</div>
-                                <div className="flex items-baseline gap-2 font-clock text-7xl sm:text-8xl">
-                                    {getRem(current.endTime).h > 0 && <><span className="text-slate-800 leading-none">{pad(getRem(current.endTime).h)}</span><span className="text-slate-200 text-4xl">:</span></>}
-                                    <span className="text-slate-800 leading-none">{pad(getRem(current.endTime).m)}</span>
-                                    <span className="text-slate-200 text-4xl">:</span>
-                                    <span className="text-blue-600 leading-none">{pad(getRem(current.endTime).s)}</span>
-                                </div>
-                                <div className="mt-8 bg-blue-100 text-blue-800 px-8 py-3 rounded-full font-black uppercase text-xl border-2 border-blue-200 font-clock">Hemma kl {new Date(current.endTime).toLocaleTimeString('sv-SE', {hour:'2-digit',minute:'2-digit'})}</div>
-                            </div>
-                        </div>
-                    )}
+                <div className="mt-4 relative">
+                    <div className="flex bg-slate-200/50 p-2 rounded-full mb-10 border-2 border-slate-200">
+                        <button onClick={() => setActiveTab('schema')} className={`flex-1 py-4 rounded-full font-black uppercase tracking-widest text-[10px] sm:text-sm transition-all ${activeTab === 'schema' ? 'bg-white text-blue-600 shadow-md' : 'text-slate-400 hover:bg-slate-200/50'}`}>Schema</button>
+                        <button onClick={() => setActiveTab('learn')} className={`flex-1 py-4 rounded-full font-black uppercase tracking-widest text-[10px] sm:text-sm transition-all ${activeTab === 'learn' ? 'bg-white text-purple-600 shadow-md' : 'text-slate-400 hover:bg-slate-200/50'}`}>Lär dig</button>
+                        <button onClick={() => setActiveTab('earn')} className={`flex-1 py-4 rounded-full font-black uppercase tracking-widest text-[10px] sm:text-sm transition-all animate-pulse ${activeTab === 'earn' ? 'bg-emerald-500 text-white shadow-md scale-105' : 'text-emerald-600 hover:bg-slate-200/50'}`}>Tjäna Pengar</button>
+                    </div>
 
-                    <div className="space-y-6">
-                        <h3 className="text-slate-400 font-black uppercase tracking-widest px-4 text-sm font-clock">Dagens Schema</h3>
-                        <div className="space-y-4">
-                            {future.length > 0 ? future.map(a => (
-                                <div key={a.id} className={`p-6 rounded-[2.5rem] border-2 shadow-sm flex items-center gap-6 ${a.isLiveEvent ? 'bg-blue-50 border-blue-300' : 'bg-white border-slate-200'}`}>
-                                    <div className="flex flex-col items-center min-w-[90px] border-r-2 border-slate-100 pr-6">
-                                        <span className="text-2xl font-clock text-slate-800">{new Date(a.startTime).toLocaleTimeString('sv-SE', {hour:'2-digit',minute:'2-digit'})}</span>
-                                        <span className="text-[10px] font-black uppercase text-slate-400 mt-1 font-clock">{formatDuration(a.duration)}</span>
+                    {activeTab === 'schema' && (
+                        <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            
+                            <header className="flex flex-col items-center mb-8 relative z-10">
+                                {!notifsEnabled && (
+                                    <button onClick={enableNotifs} className="mb-8 bg-blue-600 text-white px-8 py-4 rounded-3xl font-black uppercase shadow-lg animate-bounce border-b-4 border-blue-800 active:translate-y-1 active:border-b-0 font-clock">Aktivera Notiser & Ljud</button>
+                                )}
+                                <div className="flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-12 mb-6 w-full">
+                                    <div 
+                                        onDoubleClick={() => changeRole('parent')}
+                                        className="cursor-pointer hover:scale-105 active:scale-95 transition-transform"
+                                    >
+                                        <AnalogClock date={currentTime} size={130} />
                                     </div>
-                                    <div className="flex-1">
-                                        <span className={`text-xl font-black uppercase ${a.isLiveEvent ? 'text-blue-600' : 'text-slate-700'}`}>{a.isLiveEvent ? "LIVE EVENT" : a.title}</span>
-                                        <div className="text-xs font-bold text-slate-400 font-clock">Slutar kl {new Date(a.endTime).toLocaleTimeString('sv-SE', {hour:'2-digit',minute:'2-digit'})}</div>
+                                    <div className="text-7xl sm:text-[9rem] font-clock text-slate-900 leading-none drop-shadow-md text-center">{String(currentTime.getHours()).padStart(2, '0')}:{String(currentTime.getMinutes()).padStart(2, '0')}</div>
+                                </div>
+                                <div className="text-2xl sm:text-4xl font-black text-slate-400 uppercase tracking-widest mb-8 bg-white/60 px-8 py-3 rounded-[2rem] border-2 border-slate-200 text-center shadow-sm font-clock">{getSwedishTimeWords(currentTime)}</div>
+                                <div className="flex items-center gap-3 bg-white px-6 py-3 rounded-full border-2 border-slate-200 shadow-sm font-clock">
+                                    <span className="text-slate-500 text-sm font-bold uppercase tracking-widest font-mono">Läggdags 22:00</span>
+                                    <div className="w-1 h-6 bg-slate-200 rounded-full"></div>
+                                    <span className={`text-lg font-clock uppercase tracking-wider ${bedtimeInfo?.isLate ? 'text-red-600' : 'text-blue-600'}`}>{bedtimeInfo?.text}</span>
+                                </div>
+                            </header>
+
+                            {current && (
+                                <div className="bg-white rounded-[3rem] p-10 border-4 border-blue-200 shadow-xl flex flex-col items-center">
+                                    <div className="bg-blue-50 text-blue-600 px-6 py-2 rounded-full font-black uppercase text-sm mb-6 tracking-widest border-2 border-blue-100 font-clock">Aktivt Uppdrag</div>
+                                    <h2 className="text-5xl font-black text-slate-900 mb-8 uppercase text-center leading-tight">{current.title}</h2>
+                                    <div className="w-full bg-slate-50 p-8 rounded-[2.5rem] border-2 border-slate-100 flex flex-col items-center shadow-inner">
+                                        <div className="text-slate-400 font-black uppercase text-xs mb-4">Tid kvar</div>
+                                        <div className="flex items-baseline gap-2 font-clock text-7xl sm:text-8xl">
+                                            {getRem(current.endTime).h > 0 && <><span className="text-slate-800 leading-none">{pad(getRem(current.endTime).h)}</span><span className="text-slate-200 text-4xl">:</span></>}
+                                            <span className="text-slate-800 leading-none">{pad(getRem(current.endTime).m)}</span>
+                                            <span className="text-slate-200 text-4xl">:</span>
+                                            <span className="text-blue-600 leading-none">{pad(getRem(current.endTime).s)}</span>
+                                        </div>
+                                        <div className="mt-8 bg-blue-100 text-blue-800 px-8 py-3 rounded-full font-black uppercase text-xl border-2 border-blue-200 font-clock">Hemma kl {new Date(current.endTime).toLocaleTimeString('sv-SE', {hour:'2-digit',minute:'2-digit'})}</div>
                                     </div>
                                 </div>
-                            )) : !current && (
-                                <div className="bg-white p-10 rounded-[3rem] border-4 border-slate-200 shadow-xl flex flex-col items-center text-center relative overflow-hidden">
-                                    <div className="flex gap-6 mb-8 relative z-10">
-                                        <div className="w-16 h-12 bg-red-600 rounded-2xl flex items-center justify-center transform -rotate-6 shadow-lg"><div className="w-0 h-0 border-t-[6px] border-t-transparent border-l-[10px] border-l-white border-b-[6px] border-b-transparent ml-1"></div></div>
-                                        <div className="w-14 h-14 bg-slate-800 rounded-xl flex items-center justify-center transform rotate-12 shadow-lg"><div className="w-6 h-6 bg-white rounded-sm"></div></div>
+                            )}
+
+                            <div className="space-y-6">
+                                <h3 className="text-slate-400 font-black uppercase tracking-widest px-4 text-sm font-clock">Dagens Schema</h3>
+                                <div className="space-y-4">
+                                    {future.length > 0 ? future.map(a => (
+                                        <div key={a.id} className={`p-6 rounded-[2.5rem] border-2 shadow-sm flex items-center gap-6 ${a.isLiveEvent ? 'bg-blue-50 border-blue-300' : 'bg-white border-slate-200'}`}>
+                                            <div className="flex flex-col items-center min-w-[90px] border-r-2 border-slate-100 pr-6">
+                                                <span className="text-2xl font-clock text-slate-800">{new Date(a.startTime).toLocaleTimeString('sv-SE', {hour:'2-digit',minute:'2-digit'})}</span>
+                                                <span className="text-[10px] font-black uppercase text-slate-400 mt-1 font-clock">{formatDuration(a.duration)}</span>
+                                            </div>
+                                            <div className="flex-1">
+                                                <span className={`text-xl font-black uppercase ${a.isLiveEvent ? 'text-blue-600' : 'text-slate-700'}`}>{a.isLiveEvent ? "LIVE EVENT" : a.title}</span>
+                                                <div className="text-xs font-bold text-slate-400 font-clock">Slutar kl {new Date(a.endTime).toLocaleTimeString('sv-SE', {hour:'2-digit',minute:'2-digit'})}</div>
+                                            </div>
+                                        </div>
+                                    )) : !current && (
+                                        <div className="bg-white p-10 rounded-[3rem] border-4 border-slate-200 shadow-xl flex flex-col items-center text-center relative overflow-hidden">
+                                            <div className="flex gap-6 mb-8 relative z-10">
+                                                <div className="w-16 h-12 bg-red-600 rounded-2xl flex items-center justify-center transform -rotate-6 shadow-lg"><div className="w-0 h-0 border-t-[6px] border-t-transparent border-l-[10px] border-l-white border-b-[6px] border-b-transparent ml-1"></div></div>
+                                                <div className="w-14 h-14 bg-slate-800 rounded-xl flex items-center justify-center transform rotate-12 shadow-lg"><div className="w-6 h-6 bg-white rounded-sm"></div></div>
+                                            </div>
+                                            <h2 className="text-4xl font-black text-slate-800 uppercase mb-4">Fritid!</h2>
+                                            <p className="text-slate-500 font-bold uppercase text-xs tracking-widest font-clock">Dags för Roblox eller YouTube!</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {live && (
+                                <div className="bg-gradient-to-r from-[#00A2FF] via-white to-[#00A2FF] rounded-[2rem] sm:rounded-[3rem] p-1 border-4 border-slate-200 shadow-2xl overflow-hidden mt-10 sm:mt-20">
+                                    <div className="bg-white/90 p-4 sm:p-10 rounded-[1.8rem] sm:rounded-[2.8rem] flex flex-col items-center">
+                                        <div className="flex flex-col items-center gap-1 sm:gap-2 mb-6 sm:mb-8 text-center">
+                                            <span className="text-xl sm:text-4xl font-roblox uppercase tracking-widest text-slate-900">STEAL A</span>
+                                            <span className="text-3xl sm:text-6xl md:text-7xl font-roblox uppercase tracking-widest text-slate-900 flex items-center gap-1 sm:gap-3">
+                                                BRAINR
+                                                <div className="w-8 h-8 sm:w-12 sm:h-12 md:w-14 md:h-14 bg-[#00A2FF] rounded-lg shadow-md transform -rotate-12 flex items-center justify-center shadow-[inset_0_2px_4px_rgba(255,255,255,0.3)]"><div className="w-2 h-2 sm:w-3 sm:h-3 md:w-4 md:h-4 bg-white rounded-sm"></div></div>
+                                                TH
+                                            </span>
+                                        </div>
+                                        <div className="bg-red-600 border-2 sm:border-4 border-red-800 px-4 sm:px-8 py-2 sm:py-3 rounded-xl sm:rounded-2xl shadow-lg mb-6 sm:mb-8 flex items-center gap-2 sm:gap-3">
+                                            <div className="w-3 h-3 sm:w-4 sm:h-4 bg-white rounded-full animate-dot"></div>
+                                            <span className="text-lg sm:text-2xl font-black uppercase text-white tracking-widest font-clock">LIVE OM..</span>
+                                        </div>
+                                        <div className="bg-slate-50 p-4 sm:p-8 rounded-[1.5rem] sm:rounded-[2.5rem] border-2 border-slate-100 shadow-inner w-full flex justify-center items-start gap-2 sm:gap-4 font-clock text-4xl sm:text-7xl md:text-8xl">
+                                            {getRem(live.startTime).h > 0 && <><div className="flex flex-col items-center"><span className="text-slate-800 leading-none">{pad(getRem(live.startTime).h)}</span><span className="text-[8px] sm:text-[10px] uppercase font-black text-slate-400 mt-2 sm:mt-4">Timmar</span></div><span className="text-slate-200 text-2xl sm:text-3xl mt-2 sm:mt-4">:</span></>}
+                                            <div className="flex flex-col items-center"><span className="text-slate-800 leading-none">{pad(getRem(live.startTime).m)}</span><span className="text-[8px] sm:text-[10px] uppercase font-black text-slate-400 mt-2 sm:mt-4">Minuter</span></div>
+                                            <span className="text-slate-200 text-2xl sm:text-3xl mt-2 sm:mt-4">:</span>
+                                            <div className="flex flex-col items-center"><span className="text-red-500 leading-none">{pad(getRem(live.startTime).s)}</span><span className="text-[8px] sm:text-[10px] uppercase font-black text-red-400 mt-2 sm:mt-4 font-clock">Sekunder</span></div>
+                                        </div>
                                     </div>
-                                    <h2 className="text-4xl font-black text-slate-800 uppercase mb-4">Fritid!</h2>
-                                    <p className="text-slate-500 font-bold uppercase text-xs tracking-widest font-clock">Dags för Roblox eller YouTube!</p>
                                 </div>
                             )}
                         </div>
-                    </div>
+                    )}
 
-                    {live && (
-                        <div className="bg-gradient-to-r from-[#00A2FF] via-white to-[#00A2FF] rounded-[2rem] sm:rounded-[3rem] p-1 border-4 border-slate-200 shadow-2xl overflow-hidden mt-10 sm:mt-20">
-                            <div className="bg-white/90 p-4 sm:p-10 rounded-[1.8rem] sm:rounded-[2.8rem] flex flex-col items-center">
-                                <div className="flex flex-col items-center gap-1 sm:gap-2 mb-6 sm:mb-8 text-center">
-                                    <span className="text-xl sm:text-4xl font-roblox uppercase tracking-widest text-slate-900">STEAL A</span>
-                                    <span className="text-3xl sm:text-6xl md:text-7xl font-roblox uppercase tracking-widest text-slate-900 flex items-center gap-1 sm:gap-3">
-                                        BRAINR
-                                        <div className="w-8 h-8 sm:w-12 sm:h-12 md:w-14 md:h-14 bg-[#00A2FF] rounded-lg shadow-md transform -rotate-12 flex items-center justify-center shadow-[inset_0_2px_4px_rgba(255,255,255,0.3)]"><div className="w-2 h-2 sm:w-3 sm:h-3 md:w-4 md:h-4 bg-white rounded-sm"></div></div>
-                                        TH
-                                    </span>
-                                </div>
-                                <div className="bg-red-600 border-2 sm:border-4 border-red-800 px-4 sm:px-8 py-2 sm:py-3 rounded-xl sm:rounded-2xl shadow-lg mb-6 sm:mb-8 flex items-center gap-2 sm:gap-3">
-                                    <div className="w-3 h-3 sm:w-4 sm:h-4 bg-white rounded-full animate-dot"></div>
-                                    <span className="text-lg sm:text-2xl font-black uppercase text-white tracking-widest font-clock">LIVE OM..</span>
-                                </div>
-                                <div className="bg-slate-50 p-4 sm:p-8 rounded-[1.5rem] sm:rounded-[2.5rem] border-2 border-slate-100 shadow-inner w-full flex justify-center items-start gap-2 sm:gap-4 font-clock text-4xl sm:text-7xl md:text-8xl">
-                                    {getRem(live.startTime).h > 0 && <><div className="flex flex-col items-center"><span className="text-slate-800 leading-none">{pad(getRem(live.startTime).h)}</span><span className="text-[8px] sm:text-[10px] uppercase font-black text-slate-400 mt-2 sm:mt-4">Timmar</span></div><span className="text-slate-200 text-2xl sm:text-3xl mt-2 sm:mt-4">:</span></>}
-                                    <div className="flex flex-col items-center"><span className="text-slate-800 leading-none">{pad(getRem(live.startTime).m)}</span><span className="text-[8px] sm:text-[10px] uppercase font-black text-slate-400 mt-2 sm:mt-4">Minuter</span></div>
-                                    <span className="text-slate-200 text-2xl sm:text-3xl mt-2 sm:mt-4">:</span>
-                                    <div className="flex flex-col items-center"><span className="text-red-500 leading-none">{pad(getRem(live.startTime).s)}</span><span className="text-[8px] sm:text-[10px] uppercase font-black text-red-400 mt-2 sm:mt-4 font-clock">Sekunder</span></div>
-                                </div>
-                            </div>
+                    {activeTab === 'learn' && (
+                        <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            <CalendarCard date={currentTime} />
+                            <LearnClock />
                         </div>
+                    )}
+
+                    {activeTab === 'earn' && (
+                        <EarnMoneyTab addMoney={addMoney} bankBalance={bankBalance} />
                     )}
                 </div>
             );
@@ -334,6 +950,7 @@
             const [user, setUser] = useState(null);
             const [role, setRole] = useState(() => localStorage.getItem('adrian_app_role') || null);
             const [activities, setActivities] = useState([]);
+            const [bankBalance, setBankBalance] = useState(0); 
             const [currentTime, setCurrentTime] = useState(new Date());
             const [notifsEnabled, setNotifsEnabled] = useState(false);
             const [error, setError] = useState(null);
@@ -366,6 +983,7 @@
 
             useEffect(() => {
                 if (!user) return; 
+                
                 const colPath = collection(db, 'artifacts', appId, 'public', 'data', 'schedule_items');
                 const unsubscribe = onSnapshot(colPath, (snapshot) => {
                     const items = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -373,13 +991,31 @@
                     setActivities(items);
                     setError(null);
                 }, (err) => {
-                    console.error("Firestore error:", err);
-                    if (err.code === 'permission-denied') {
-                        setError("Databasen är låst. Kolla reglerna i Firebase.");
+                    if (err.code === 'permission-denied') setError("Databasen är låst. Kolla reglerna i Firebase.");
+                });
+
+                const bankDoc = doc(db, 'artifacts', appId, 'public', 'data', 'bank', 'adrian');
+                const unsubBank = onSnapshot(bankDoc, (d) => {
+                    if (d.exists()) {
+                        setBankBalance(d.data().balance || 0);
+                    } else {
+                        setDoc(bankDoc, { balance: 0 }).catch(console.error);
                     }
                 });
-                return () => unsubscribe();
+
+                return () => { unsubscribe(); unsubBank(); }
             }, [user]);
+
+            const addMoney = async (amount) => {
+                try {
+                    const bankDoc = doc(db, 'artifacts', appId, 'public', 'data', 'bank', 'adrian');
+                    await updateDoc(bankDoc, {
+                        balance: bankBalance + amount
+                    });
+                } catch (err) {
+                    console.error("Kunde inte uppdatera banken", err);
+                }
+            };
 
             useEffect(() => {
                 if (!notifsEnabled || role !== 'child') return;
@@ -399,40 +1035,18 @@
                 });
             }, [currentTime, notifsEnabled, activities, role]);
 
-           const enableNotifs = async () => {
-    if (!window.Notification) {
-        alert("Notiser stöds inte. På iPhone MÅSTE du trycka på 'Dela' -> 'Lägg till på hemskärmen' först!");
-        return;
-    }
-
-    try {
-        const permission = await Notification.requestPermission();
-        if (permission === 'granted') {
-            setNotifsEnabled(true);
-            audioRef.current?.play().catch(e => console.log("Init audio failed", e));
-            
-            // Hämta token (Klistra in din VAPID-nyckel från Firebase här)
-            const currentToken = await getToken(messaging, { 
-                vapidKey: 'BKc6JIfn6UU5KfzfPe0l56Pj5gFfQflQeroH8hEenz3OoeiFrfQIdwhKD1c380MP9ydhPVdOyvIE4C-Schh-0sA' 
-            });
-
-            if (currentToken) {
-                console.log("Fick Token!", currentToken);
-                // Spara token i databasen så servern vet vem den ska larma
-                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'device_tokens', 'adrians_telefon'), {
-                    token: currentToken,
-                    updatedAt: Date.now()
+            const enableNotifs = () => {
+                if (!window.Notification) {
+                    alert("Notiser stöds inte. På iPhone MÅSTE du trycka på 'Dela' -> 'Lägg till på hemskärmen' först!");
+                    return;
+                }
+                Notification.requestPermission().then(p => {
+                    if (p === 'granted') {
+                        setNotifsEnabled(true);
+                        audioRef.current?.play().catch(e => console.log("Init audio failed", e));
+                    }
                 });
-                alert("Push-notiser är nu aktiverade! Token sparad i databasen.");
-            }
-        } else {
-            alert("Du nekade notiser. Ändra i telefonens inställningar.");
-        }
-    } catch (err) {
-        console.error("Fel vid notis-setup:", err);
-        alert("Något gick fel: " + err.message);
-    }
-};
+            };
 
             const bedtimeInfo = ((currentMs) => {
                 const now = new Date(currentMs);
@@ -448,48 +1062,53 @@
 
             if (!role) {
                 return (
-                    <div className="flex flex-col min-h-screen items-center justify-center p-6 bg-slate-50">
-                        <h1 className="text-4xl font-black mb-12 text-slate-900 uppercase tracking-widest text-center">Välj Användare</h1>
-                        <div className="flex flex-col gap-8 w-full max-w-md">
-                            <button onClick={() => changeRole('child')} className="bg-red-600 border-b-8 border-red-800 rounded-[2.5rem] p-10 shadow-xl active:translate-y-2 active:border-b-0 transition-all">
-                                <div className="w-20 h-20 mb-4 bg-white rounded-xl flex items-center justify-center transform rotate-12"><div className="w-8 h-8 bg-red-600 rounded-sm"></div></div>
-                                <span className="text-4xl font-black text-white uppercase tracking-wider">Adrian</span>
-                                <span className="text-red-100 font-bold mt-2 uppercase text-sm font-clock">Dagens schema</span>
+                    <div className="flex flex-col min-h-screen items-center justify-center p-6 bg-slate-50 relative">
+                        <div className="flex flex-col w-full max-w-lg">
+                            <button onClick={() => changeRole('child')} className="bg-red-600 border-b-[16px] border-red-800 rounded-[4rem] p-12 sm:p-20 shadow-2xl active:translate-y-4 active:border-b-0 transition-all flex flex-col items-center justify-center min-h-[60vh]">
+                                <div className="w-32 h-32 sm:w-40 sm:h-40 mb-8 bg-white rounded-[2rem] flex items-center justify-center transform rotate-12 shadow-xl"><div className="w-12 h-12 sm:w-16 sm:h-16 bg-red-600 rounded-xl"></div></div>
+                                <span className="text-6xl sm:text-8xl font-black text-white uppercase tracking-wider">Adrian</span>
+                                <span className="text-red-100 font-bold mt-6 uppercase text-xl sm:text-2xl font-clock tracking-widest opacity-80">Starta</span>
                             </button>
-                            <button onClick={() => changeRole('parent')} className="bg-white border-4 border-slate-200 rounded-[2.5rem] p-8 shadow-md active:scale-95 transition-all text-slate-700 font-black uppercase tracking-widest">Admin Control</button>
                         </div>
                     </div>
                 );
             }
 
             return (
-                <div className="max-w-3xl mx-auto p-4 md:p-8 pb-20">
+                <div className="max-w-3xl mx-auto p-4 md:p-8 pb-20 relative">
                     <audio ref={audioRef} src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto" />
-                    <button onClick={() => changeRole(null)} className="text-slate-300 mb-10 uppercase font-black text-xs hover:text-slate-500 font-clock">Byt vy</button>
                     
                     {error && (
-                        <div className="mb-6 p-4 bg-red-100 border-2 border-red-200 text-red-700 rounded-2xl font-bold text-center">
+                        <div className="mb-6 p-4 bg-red-100 border-2 border-red-200 text-red-700 rounded-2xl font-bold text-center relative z-10">
                             {error}
                         </div>
                     )}
 
-                    <header className="flex flex-col items-center mb-12">
-                        {role === 'child' && !notifsEnabled && (
-                            <button onClick={enableNotifs} className="mb-8 bg-blue-600 text-white px-8 py-4 rounded-3xl font-black uppercase shadow-lg animate-bounce border-b-4 border-blue-800 active:translate-y-1 active:border-b-0 font-clock">Aktivera Notiser & Ljud</button>
-                        )}
-                        <div className="flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-12 mb-6 w-full">
-                            <AnalogClock date={currentTime} size={130} />
-                            <div className="text-7xl sm:text-[9rem] font-clock text-slate-900 leading-none drop-shadow-md text-center">{String(currentTime.getHours()).padStart(2, '0')}:{String(currentTime.getMinutes()).padStart(2, '0')}</div>
-                        </div>
-                        <div className="text-2xl sm:text-4xl font-black text-slate-400 uppercase tracking-widest mb-8 bg-white/60 px-8 py-3 rounded-[2rem] border-2 border-slate-200 text-center shadow-sm font-clock">{getSwedishTimeWords(currentTime)}</div>
-                        <div className="flex items-center gap-3 bg-white px-6 py-3 rounded-full border-2 border-slate-200 shadow-sm font-clock">
-                            <span className="text-slate-500 text-sm font-bold uppercase tracking-widest font-mono">Läggdags 22:00</span>
-                            <div className="w-1 h-6 bg-slate-200 rounded-full"></div>
-                            <span className={`text-lg font-clock uppercase tracking-wider ${bedtimeInfo.isLate ? 'text-red-600' : 'text-blue-600'}`}>{bedtimeInfo.text}</span>
-                        </div>
-                    </header>
-
-                    {role === 'parent' ? <ParentUI activities={activities} db={db} appId={appId} user={user} /> : <ChildUI activities={activities} currentTime={currentTime} />}
+                    {role === 'parent' ? (
+                        <ParentUI 
+                            activities={activities} 
+                            bankBalance={bankBalance} 
+                            addMoney={addMoney} 
+                            db={db} 
+                            appId={appId} 
+                            user={user} 
+                            onLogout={() => changeRole(null)} 
+                        />
+                    ) : (
+                        <ChildUI 
+                            activities={activities} 
+                            currentTime={currentTime} 
+                            bankBalance={bankBalance} 
+                            addMoney={addMoney} 
+                            db={db} 
+                            appId={appId} 
+                            onLogout={() => changeRole(null)}
+                            changeRole={changeRole}
+                            notifsEnabled={notifsEnabled}
+                            enableNotifs={enableNotifs}
+                            bedtimeInfo={bedtimeInfo}
+                        />
+                    )}
                 </div>
             );
         }
