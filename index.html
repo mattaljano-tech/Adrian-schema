@@ -459,6 +459,48 @@
             );
         };
 
+        // --- NY COMPONENT: MINNESREGLER (RAMSOR) ---
+        const LearnRhymes = () => {
+            return (
+                <div className="space-y-6 mt-12">
+                   <h3 className="text-slate-400 font-black uppercase tracking-widest px-4 text-sm font-clock text-center mb-6">Smarta Minnesregler</h3>
+
+                   <div className="bg-white p-6 sm:p-8 rounded-[2.5rem] border-4 border-emerald-200 shadow-xl relative">
+                       <h4 className="text-2xl font-black text-slate-800 uppercase mb-4 flex items-center gap-3"><span className="text-4xl">📅</span> Månaderna</h4>
+                       <p className="text-slate-600 font-bold italic text-lg leading-relaxed bg-emerald-50 p-4 rounded-2xl border-2 border-emerald-100 shadow-inner">
+                           "Trettio dagar har november,<br/>
+                           april, juni och september.<br/>
+                           Februari tjugoåtta allena,<br/>
+                           alla de övriga trettioen ha."
+                       </p>
+                   </div>
+
+                   <div className="bg-white p-6 sm:p-8 rounded-[2.5rem] border-4 border-blue-200 shadow-xl relative">
+                       <h4 className="text-2xl font-black text-slate-800 uppercase mb-4 flex items-center gap-3"><span className="text-4xl">⏱️</span> Klockan</h4>
+                       <ul className="space-y-3 bg-blue-50 p-4 rounded-2xl border-2 border-blue-100 text-slate-700 font-bold shadow-inner text-sm sm:text-base">
+                           <li className="flex items-center gap-2">⬆️ Stor visare rakt <strong className="text-blue-600">UPP</strong> = HEL timme</li>
+                           <li className="flex items-center gap-2">⬇️ Stor visare rakt <strong className="text-blue-600">NER</strong> = HALV timme</li>
+                           <li className="flex items-center gap-2">➡️ Stor visare till <strong className="text-blue-600">HÖGER</strong> = KVART ÖVER</li>
+                           <li className="flex items-center gap-2">⬅️ Stor visare till <strong className="text-blue-600">VÄNSTER</strong> = KVART I</li>
+                       </ul>
+                   </div>
+
+                   <div className="bg-white p-6 sm:p-8 rounded-[2.5rem] border-4 border-purple-200 shadow-xl relative">
+                       <h4 className="text-2xl font-black text-slate-800 uppercase mb-4 flex items-center gap-3"><span className="text-4xl">🌈</span> Veckodagarna</h4>
+                       <div className="bg-purple-50 p-4 rounded-2xl border-2 border-purple-100 font-bold space-y-2 text-sm sm:text-base shadow-inner">
+                           <p className="text-[#4CAF50] drop-shadow-sm">Måndag gör vi ingenting (Grön som gräs)</p>
+                           <p className="text-[#2196F3] drop-shadow-sm">Tisdag ser vi oss omkring (Blå som himlen)</p>
+                           <p className="text-slate-500 drop-shadow-sm">Onsdag mitt i veckan går (Grå som moln)</p>
+                           <p className="text-[#8D6E63] drop-shadow-sm">Torsdag trötta vi ju mår (Brun som jord)</p>
+                           <p className="text-[#D4C42C] drop-shadow-sm">Fredag väntar vi på helg (Gul som sol)</p>
+                           <p className="text-[#E91E63] drop-shadow-sm">Lördag är en ledig dag (Rosa och glad)</p>
+                           <p className="text-[#F44336] drop-shadow-sm">Söndag, veckans sista drag! (Röd och skön)</p>
+                       </div>
+                   </div>
+                </div>
+            );
+        };
+
         // --- FLYING COIN ANIMATION COMPONENT ---
         const FlyingCoin = ({ coin }) => {
             const [pos, setPos] = useState({ left: coin.startX, top: coin.startY, scale: 1, opacity: 1 });
@@ -479,7 +521,7 @@
         };
 
         // --- COMPONENT: EARN MONEY (QUESTS & SHOP) ---
-        const EconomyTab = ({ addMoney, bankBalance, bankStreak, sendMessage }) => {
+        const EconomyTab = ({ addMoney, bankBalance, bankStreak, claimedQuests, sendMessage }) => {
             const [walkTime, setWalkTime] = useState(0);
             const [isWalking, setIsWalking] = useState(false);
             const [isMoving, setIsMoving] = useState(false);
@@ -489,30 +531,46 @@
             const [flyingCoins, setFlyingCoins] = useState([]);
             const [expandedChore, setExpandedChore] = useState(null);
 
-            // Sub-tasks state för "Städa ditt rum"
-            const [cleanTasks, setCleanTasks] = useState([
-                { id: 'c1', text: 'Plocka upp kläder', reward: 5, done: false },
-                { id: 'c2', text: 'Bädda sängen', reward: 5, done: false },
-                { id: 'c3', text: 'Töm papperskorgen', reward: 10, done: false }
-            ]);
+            // Nytt: Lästimerns state
+            const [readTime, setReadTime] = useState(0);
+            const [isReading, setIsReading] = useState(false);
 
-            // NY: Sub-tasks state för "Skol-Fix"
-            const [schoolTasks, setSchoolTasks] = useState([
-                { id: 'h1', text: 'Gör läxa / Träna hjärnan i 15 min', reward: 10, done: false },
-                { id: 'h2', text: 'Packa skolväskan', reward: 5, done: false }
-            ]);
-
-            // Uppdaterad lista med Quests
-            const fastQuests = [
-                { id: 'q1', title: "Hjälpa till med disken", reward: 15, icon: "🍽️", type: "simple" },
-                { id: 'q2', title: "Städa ditt rum", reward: 20, icon: "🧹", type: "checklist", list: 'clean' },
-                { id: 'q4', title: "Duka bordet", reward: 10, icon: "🥣", type: "simple" },
-                { id: 'q5', title: "Skol-Fix", reward: 15, icon: "🎒", type: "checklist", list: 'school' },
-                { id: 'q3', title: "Ta ut sopor & Återvinning", reward: 10, icon: "🗑️", type: "simple" },
-                { id: 'q6', title: "Fysisk utmaning (T.ex 20 situps)", reward: 10, icon: "💪", type: "simple" }
+            // Sub-tasks (Inget done-state behövs lokalt längre, vi kollar mot databasen!)
+            const cleanTasks = [
+                { id: 'c1', text: 'Plocka upp kläder', reward: 5 },
+                { id: 'c2', text: 'Bädda sängen', reward: 5 }
             ];
 
-            // Uppdaterad Belöningsbutik
+            const schoolTasks = [
+                { id: 'h1', text: 'Gör läxa / Träna hjärnan i 15 min', reward: 10 },
+                { id: 'h2', text: 'Packa skolväskan', reward: 5 }
+            ];
+
+            const learnTasks = [
+                { id: 'l1', text: 'Träna på klockan', reward: 5 },
+                { id: 'l2', text: 'Träna på veckodagarna', reward: 5 },
+                { id: 'l3', text: 'Träna på månaderna', reward: 5 },
+                { id: 'l4', text: 'Kolla på en lärande dokumentär (minst 10 min)', reward: 15 }
+            ];
+
+            const physicalTasks = [
+                { id: 'p1', text: 'Armhävningar (3x5)', reward: 10 },
+                { id: 'p2', text: 'Squats / Benböj (20 st)', reward: 10 },
+                { id: 'p3', text: 'Plankan (30 sekunder)', reward: 10 }
+            ];
+
+            const fastQuests = [
+                { id: 'q1', title: "Hjälpa till med disken", reward: 15, icon: "🍽️", type: "simple" },
+                { id: 'q4', title: "Duka bordet", reward: 10, icon: "🥣", type: "simple" },
+                { id: 'q2', title: "Städa ditt rum", icon: "🧹", type: "checklist", list: 'clean' },
+                { id: 'q5', title: "Skol-Fix", icon: "🎒", type: "checklist", list: 'school' },
+                { id: 'q3', title: "Ta ut sopor & Återvinning", reward: 10, icon: "🗑️", type: "simple" },
+                { id: 'q10', title: "Hjärngympa & Lärande", icon: "🧠", type: "checklist", list: 'learn' },
+                { id: 'q9', title: "Egen Fysisk Utmaning", icon: "🏃‍♂️", type: "checklist", list: 'physical' },
+                { id: 'q7', title: "Gymmet med Mamma", reward: 30, icon: "🏋️‍♀️", type: "simple" },
+                { id: 'q8', title: "Spela fotboll med Mathias", reward: 30, icon: "⚽", type: "simple" }
+            ];
+
             const shopItems = [
                 { id: 's2', title: "1 timme PS5", cost: 30, icon: "🎮" },
                 { id: 's4', title: "Filmmys med snacks", cost: 40, icon: "🍿" },
@@ -521,6 +579,14 @@
                 { id: 's1', title: "100 Robux", cost: 80, icon: "💎" },
                 { id: 's8', title: "Spara till: Nytt PS5-spel", cost: 600, icon: "📀" }
             ];
+
+            // Kollar om ett uppdrag redan är slutfört IDAG
+            const isClaimedToday = (id) => {
+                if (!claimedQuests || !claimedQuests[id]) return false;
+                const claimDateStr = new Date(claimedQuests[id]).toISOString().split('T')[0];
+                const todayStr = new Date().toISOString().split('T')[0];
+                return claimDateStr === todayStr;
+            };
 
             const haversineDistance = (coords1, coords2) => {
                 const toRad = (x) => x * Math.PI / 180;
@@ -535,20 +601,24 @@
 
             useEffect(() => {
                 let interval = null;
-                if (isWalking) {
+                if (isWalking || isReading) {
                     interval = setInterval(() => {
                         const now = Date.now();
-                        // Kolla om han rört sig de senaste 3 minuterna (180000 ms)
-                        if (now - lastMovementTime.current < 180000) {
-                            setWalkTime(t => t + 1);
-                            setIsMoving(true);
-                        } else {
-                            setIsMoving(false); // Pausad pga inaktivitet
+                        if (isWalking) {
+                            if (now - lastMovementTime.current < 180000) {
+                                setWalkTime(t => t + 1);
+                                setIsMoving(true);
+                            } else {
+                                setIsMoving(false); 
+                            }
+                        }
+                        if (isReading) {
+                            setReadTime(t => t + 1);
                         }
                     }, 1000);
                 }
                 return () => clearInterval(interval);
-            }, [isWalking]);
+            }, [isWalking, isReading]);
 
             const formatTimer = (totalSeconds) => {
                 const m = Math.floor(totalSeconds / 60);
@@ -556,7 +626,7 @@
                 return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
             };
 
-            const handleClaim = (amount, e, description = "Uppdrag") => {
+            const handleClaim = (amount, e, questId = null, description = "Uppdrag") => {
                 const rect = e.currentTarget.getBoundingClientRect();
                 const startX = rect.left + rect.width / 2;
                 const startY = rect.top + rect.height / 2;
@@ -575,33 +645,40 @@
 
                 setTimeout(() => {
                     setFlyingCoins(prev => prev.filter(c => c.id !== id));
-                    addMoney(amount, true); 
+                    addMoney(amount, true, questId); 
                 }, 800);
             };
 
             const handleBuy = (item, e) => {
                 if (bankBalance >= item.cost) {
-                    handleClaim(-item.cost, e, "Köp");
+                    handleClaim(-item.cost, e, null, "Köp");
                     sendMessage(`Adrian har köpt: ${item.title}!`, item.icon);
                 } else {
                     alert(`Du behöver ${item.cost - bankBalance} kr till för att köpa detta!`);
                 }
             };
 
-            // Hanterar båda checklistorna dynamiskt (Städning och Skola)
-            const handleChecklistTask = (taskId, listType, e) => {
-                if (listType === 'clean') {
-                    const task = cleanTasks.find(t => t.id === taskId);
-                    if (task && !task.done) {
-                        setCleanTasks(prev => prev.map(t => t.id === taskId ? { ...t, done: true } : t));
-                        handleClaim(task.reward, e, task.text);
-                    }
-                } else if (listType === 'school') {
-                    const task = schoolTasks.find(t => t.id === taskId);
-                    if (task && !task.done) {
-                        setSchoolTasks(prev => prev.map(t => t.id === taskId ? { ...t, done: true } : t));
-                        handleClaim(task.reward, e, task.text);
-                    }
+            const getTasks = (listType) => {
+                if (listType === 'clean') return cleanTasks;
+                if (listType === 'school') return schoolTasks;
+                if (listType === 'learn') return learnTasks;
+                if (listType === 'physical') return physicalTasks;
+                return [];
+            };
+
+            const handleReadAction = () => {
+                if (!isReading && readTime === 0) setIsReading(true);
+                else if (isReading) setIsReading(false);
+                else setIsReading(true);
+            };
+
+            const readableTens = Math.floor(readTime / 600);
+            const readReward = readableTens * 10;
+
+            const claimReadReward = (e) => {
+                if (readReward > 0) {
+                    handleClaim(readReward, e, null, "Läsning");
+                    setReadTime(readTime - (readableTens * 600));
                 }
             };
 
@@ -617,7 +694,7 @@
                                 const now = Date.now();
                                 if (lastPosition.current) {
                                     const dist = haversineDistance(lastPosition.current, pos.coords);
-                                    if (dist > 5) { // Rört sig mer än 5 meter
+                                    if (dist > 5) {
                                         lastMovementTime.current = now;
                                         lastPosition.current = pos.coords;
                                     }
@@ -638,7 +715,7 @@
                         navigator.geolocation.clearWatch(watchId.current);
                         watchId.current = null;
                     }
-                    if (walkEarned > 0) handleClaim(walkEarned, e, "Promenad");
+                    if (walkEarned > 0) handleClaim(walkEarned, e, null, "Promenad");
                     setIsWalking(false);
                     setIsMoving(false);
                     setWalkTime(0);
@@ -683,91 +760,281 @@
 
                     <h3 className="text-slate-400 font-black uppercase tracking-widest px-4 text-sm font-clock mt-8 mb-4 border-b-2 border-slate-200 pb-2">🎮 Tjäna Pengar (Quests)</h3>
                     
-                    {/* SNABBA UPPDRAG (MED CHECKLISTA) */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
-                        {fastQuests.map(q => (
-                             <div key={q.id} className="bg-white p-6 rounded-3xl border-4 border-slate-200 shadow-md flex flex-col transition-all hover:border-emerald-300">
-                                 <div 
-                                    className="flex justify-between items-center cursor-pointer group"
-                                    onClick={(e) => {
-                                        if (q.type === 'simple') handleClaim(q.reward, e, q.title);
-                                        else setExpandedChore(expandedChore === q.id ? null : q.id);
-                                    }}
-                                 >
-                                     <div className="flex items-center gap-4">
-                                         <span className="text-4xl group-hover:scale-110 transition-transform">{q.icon}</span>
-                                         <span className="font-black text-slate-700 uppercase text-sm sm:text-base leading-tight">{q.title}</span>
-                                     </div>
-                                     {q.type === 'simple' ? (
-                                         <div className="bg-emerald-100 text-emerald-700 font-black px-4 py-2 rounded-full border-2 border-emerald-200 flex-shrink-0">
-                                            +{q.reward} kr
+                    {/* SNABBA UPPDRAG (MED CHECKLISTA OCH LÅS) */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10 items-start">
+                        {fastQuests.map(q => {
+                             const tasks = getTasks(q.list);
+                             const totalReward = q.type === 'checklist' ? tasks.reduce((sum, t) => sum + t.reward, 0) : q.reward;
+                             const isSimpleDone = q.type === 'simple' && isClaimedToday(q.id);
+                             const isChecklistDone = q.type === 'checklist' && tasks.length > 0 && tasks.every(t => isClaimedToday(t.id));
+                             const completelyDone = isSimpleDone || isChecklistDone;
+
+                             return (
+                                 <div key={q.id} className={`bg-white p-6 rounded-3xl border-4 shadow-md flex flex-col transition-all ${completelyDone ? 'border-slate-200 opacity-60 grayscale-[50%]' : 'border-slate-200 hover:border-emerald-300'}`}>
+                                     <div 
+                                        className={`flex justify-between items-center group ${completelyDone ? 'cursor-default' : 'cursor-pointer'}`}
+                                        onClick={(e) => {
+                                            if (completelyDone) return;
+                                            if (q.type === 'simple') handleClaim(q.reward, e, q.id, q.title);
+                                            else setExpandedChore(expandedChore === q.id ? null : q.id);
+                                        }}
+                                     >
+                                         <div className="flex items-center gap-4">
+                                             <span className={`text-4xl ${completelyDone ? '' : 'group-hover:scale-110 transition-transform'}`}>{q.icon}</span>
+                                             <span className="font-black text-slate-700 uppercase text-sm sm:text-base leading-tight">
+                                                 {q.title}
+                                                 {completelyDone && <span className="block text-xs text-emerald-600 mt-1">Klar för idag ✅</span>}
+                                             </span>
                                          </div>
-                                     ) : (
-                                         <div className="bg-slate-100 text-slate-500 font-black px-4 py-2 rounded-full border-2 border-slate-200 flex-shrink-0">
-                                            {expandedChore === q.id ? 'Dölj' : 'Visa mer'}
+                                         <div className="flex flex-col items-end gap-2">
+                                             <div className={`${completelyDone ? 'bg-slate-200 text-slate-400' : 'bg-emerald-100 text-emerald-700'} font-black px-3 py-1 sm:px-4 sm:py-2 rounded-full border-2 border-transparent flex-shrink-0 text-xs sm:text-sm whitespace-nowrap`}>
+                                                {q.type === 'checklist' ? `Upp till +${totalReward} kr` : `+${q.reward} kr`}
+                                             </div>
+                                             {q.type === 'checklist' && (
+                                                 <div className={`${completelyDone ? 'bg-slate-200 text-slate-400' : 'bg-slate-100 text-slate-500'} font-bold px-3 py-1 rounded-full border-2 border-slate-200 text-[10px] uppercase text-center w-full max-w-[120px]`}>
+                                                    {expandedChore === q.id ? 'Dölj' : 'Visa uppdrag'}
+                                                 </div>
+                                             )}
+                                         </div>
+                                     </div>
+
+                                     {/* EXTRALISTA FÖR CHECKLISTOR */}
+                                     {q.type === 'checklist' && expandedChore === q.id && (
+                                         <div className="mt-6 pt-4 border-t-2 border-slate-100 space-y-3">
+                                             {tasks.map(task => {
+                                                 const taskDone = isClaimedToday(task.id);
+                                                 return (
+                                                     <div key={task.id} className={`flex justify-between items-center p-4 rounded-xl border-2 transition-all ${taskDone ? 'bg-green-50 border-green-200 opacity-60' : 'bg-slate-50 border-slate-200'}`}>
+                                                         <span className={`font-bold uppercase text-sm pr-2 ${taskDone ? 'text-green-600 line-through' : 'text-slate-700'}`}>{task.text}</span>
+                                                         <button 
+                                                            disabled={taskDone}
+                                                            onClick={(e) => handleClaim(task.reward, e, task.id, task.text)}
+                                                            className={`px-4 py-2 rounded-full font-black text-xs uppercase shadow-sm border-2 whitespace-nowrap flex-shrink-0 ${taskDone ? 'bg-green-200 text-green-700 border-green-300' : 'bg-emerald-500 text-white border-emerald-600 hover:bg-emerald-400 active:scale-95'}`}
+                                                         >
+                                                             {taskDone ? 'Klar!' : `+${task.reward} kr`}
+                                                         </button>
+                                                     </div>
+                                                 );
+                                             })}
+                                             {tasks.length > 0 && tasks.every(t => isClaimedToday(t.id)) && (
+                                                 <div className="text-center font-black text-emerald-600 uppercase text-sm pt-2 animate-pulse">Snyggt jobbat! Allt är klart.</div>
+                                             )}
                                          </div>
                                      )}
                                  </div>
-
-                                 {/* EXTRALISTA FÖR CHECKLISTOR */}
-                                 {q.type === 'checklist' && expandedChore === q.id && (
-                                     <div className="mt-6 pt-4 border-t-2 border-slate-100 space-y-3">
-                                         {(q.list === 'clean' ? cleanTasks : schoolTasks).map(task => (
-                                             <div key={task.id} className={`flex justify-between items-center p-4 rounded-xl border-2 transition-all ${task.done ? 'bg-green-50 border-green-200' : 'bg-slate-50 border-slate-200'}`}>
-                                                 <span className={`font-bold uppercase text-sm ${task.done ? 'text-green-600 line-through' : 'text-slate-700'}`}>{task.text}</span>
-                                                 <button 
-                                                    disabled={task.done}
-                                                    onClick={(e) => handleChecklistTask(task.id, q.list, e)}
-                                                    className={`px-4 py-2 rounded-full font-black text-xs uppercase shadow-sm border-2 ${task.done ? 'bg-green-200 text-green-700 border-green-300' : 'bg-emerald-500 text-white border-emerald-600 hover:bg-emerald-400 active:scale-95'}`}
-                                                 >
-                                                     {task.done ? 'Klar!' : `+${task.reward} kr`}
-                                                 </button>
-                                             </div>
-                                         ))}
-                                         {(q.list === 'clean' ? cleanTasks : schoolTasks).every(t => t.done) && (
-                                             <div className="text-center font-black text-emerald-600 uppercase text-sm pt-2 animate-pulse">Snyggt jobbat! Allt är klart.</div>
-                                         )}
-                                     </div>
-                                 )}
-                             </div>
-                        ))}
+                             );
+                        })}
                     </div>
 
-                    <h3 className="text-slate-400 font-black uppercase tracking-widest px-4 text-sm font-clock mt-8 mb-4 border-b-2 border-slate-200 pb-2">Rörelse</h3>
+                    <h3 className="text-slate-400 font-black uppercase tracking-widest px-4 text-sm font-clock mt-8 mb-4 border-b-2 border-slate-200 pb-2">Fokus & Rörelse</h3>
+
+                    <div className={`rounded-[2.5rem] p-6 sm:p-8 shadow-xl border-4 relative overflow-hidden transition-colors duration-500 ${isReading ? 'border-orange-400' : 'border-slate-200'}`}>
+                        
+                        {/* Vektor-bakgrund: Mysig Läshörna */}
+                        <svg className="absolute inset-0 w-full h-full object-cover z-0" viewBox="0 0 800 400" preserveAspectRatio="xMidYMid slice">
+                            {/* Vägg */}
+                            <rect width="800" height="400" fill="#fef3c7" />
+                            
+                            {/* Fönster ut mot natthimlen */}
+                            <rect x="100" y="50" width="150" height="200" fill="#1e1b4b" stroke="#ffffff" strokeWidth="8" />
+                            <line x1="100" y1="150" x2="250" y2="150" stroke="#ffffff" strokeWidth="4" />
+                            <line x1="175" y1="50" x2="175" y2="250" stroke="#ffffff" strokeWidth="4" />
+                            <circle cx="210" cy="90" r="15" fill="#fef08a" />
+                            <circle cx="130" cy="80" r="2" fill="#ffffff" />
+                            <circle cx="140" cy="180" r="2" fill="#ffffff" />
+                            <circle cx="220" cy="200" r="1.5" fill="#ffffff" />
+                            
+                            {/* Bokhylla */}
+                            <rect x="550" y="50" width="180" height="300" fill="#78350f" />
+                            <rect x="560" y="120" width="160" height="10" fill="#92400e" />
+                            <rect x="560" y="200" width="160" height="10" fill="#92400e" />
+                            <rect x="560" y="280" width="160" height="10" fill="#92400e" />
+                            
+                            {/* Böcker i hyllan */}
+                            <rect x="570" y="70" width="20" height="50" fill="#ef4444" />
+                            <rect x="595" y="60" width="15" height="60" fill="#3b82f6" />
+                            <rect x="615" y="80" width="25" height="40" fill="#10b981" />
+                            <rect x="660" y="70" width="15" height="50" fill="#f59e0b" transform="rotate(15 660 120)" />
+                            
+                            <rect x="580" y="150" width="30" height="50" fill="#8b5cf6" />
+                            <rect x="615" y="140" width="20" height="60" fill="#f43f5e" />
+                            <rect x="640" y="160" width="40" height="40" fill="#14b8a6" />
+                            
+                            <rect x="570" y="230" width="15" height="50" fill="#f59e0b" />
+                            <rect x="590" y="220" width="25" height="60" fill="#3b82f6" />
+                            <rect x="620" y="240" width="20" height="40" fill="#ef4444" />
+                            
+                            {/* Liten blomma / Växt */}
+                            <circle cx="680" cy="260" r="15" fill="#d97706" />
+                            <path d="M680 260 Q670 230 660 250" stroke="#15803d" fill="none" strokeWidth="4"/>
+                            <path d="M680 260 Q690 220 700 240" stroke="#15803d" fill="none" strokeWidth="4"/>
+                            
+                            {/* Golv & Mysig matta */}
+                            <rect x="0" y="350" width="800" height="50" fill="#b45309" />
+                            <ellipse cx="400" cy="360" rx="200" ry="20" fill="#0f766e" />
+                            
+                            {/* Golvlampa & Ljus */}
+                            <rect x="200" y="100" width="50" height="40" fill="#fbbf24" />
+                            <polygon points="180,140 270,140 240,100 210,100" fill="#fcd34d" />
+                            <line x1="225" y1="140" x2="225" y2="350" stroke="#475569" strokeWidth="6" />
+                            <ellipse cx="225" cy="350" rx="30" ry="5" fill="#475569" />
+                            <polygon points="180,140 270,140 400,350 50,350" fill="#fef08a" opacity="0.2" />
+
+                            {/* Röd läsfåtölj */}
+                            <path d="M300 200 C300 150, 450 150, 450 200 L450 320 C450 340, 300 340, 300 320 Z" fill="#b91c1c" />
+                            <rect x="280" y="220" width="40" height="100" rx="20" fill="#991b1b" />
+                            <rect x="430" y="220" width="40" height="100" rx="20" fill="#991b1b" />
+                            <path d="M320 280 Q375 260 430 280 L430 320 Q375 340 320 320 Z" fill="#7f1d1d" />
+
+                            {/* Sovande katt */}
+                            <ellipse cx="400" cy="355" rx="25" ry="12" fill="#f59e0b" />
+                            <circle cx="385" cy="352" r="10" fill="#f59e0b" />
+                            <polygon points="378,348 382,340 388,345" fill="#f59e0b" />
+                            <polygon points="388,345 392,340 396,348" fill="#f59e0b" />
+                        </svg>
+
+                        <div className="absolute inset-0 bg-slate-900/65 z-10 backdrop-blur-[1px]"></div>
+
+                        <div className="relative z-20">
+                            <div className="flex items-center gap-4 mb-6">
+                                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-4xl shadow-md ${isReading ? 'bg-orange-400 animate-pulse' : 'bg-white'}`}>📖</div>
+                                <div>
+                                    <h4 className="text-2xl font-black text-white uppercase tracking-wide drop-shadow-md">Läs en bok</h4>
+                                    <p className="text-slate-200 font-bold text-sm drop-shadow-md">Läs hur länge du vill. Du tjänar 10 kr för varje 10 minuter.</p>
+                                </div>
+                            </div>
+
+                            <div className="text-white flex flex-col items-center mb-6">
+                                <span className="text-[5.5rem] leading-none font-clock font-black tracking-widest drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)]">{formatTimer(readTime)}</span>
+                                <div className="mt-6 text-center bg-slate-900/80 px-6 py-2 rounded-full border-2 border-slate-500 shadow-xl backdrop-blur-md">
+                                    {readReward > 0 
+                                       ? <span className="text-green-400 font-black uppercase text-lg animate-bounce">Du har tjänat {readReward} kr!</span>
+                                       : <span className="text-slate-300 font-bold uppercase text-sm">Läs i 10 min för att tjäna 10 kr</span>
+                                    }
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col sm:flex-row gap-3">
+                                <button 
+                                    onClick={handleReadAction} 
+                                    className={`flex-1 py-4 rounded-xl font-black uppercase tracking-widest shadow-xl transition-all active:scale-95 border-2 ${isReading ? 'bg-orange-500 text-white border-orange-600 hover:bg-orange-400' : 'bg-blue-600 text-white border-blue-700 hover:bg-blue-500'}`}
+                                >
+                                    {readTime === 0 ? '▶ Starta Timer' : isReading ? '⏸ Pausa' : '▶ Fortsätt läsa'}
+                                </button>
+
+                                {readReward > 0 && (
+                                    <button onClick={claimReadReward} className="flex-1 py-4 bg-yellow-400 hover:bg-yellow-300 text-slate-900 rounded-xl font-black uppercase tracking-widest shadow-xl transition-all active:scale-95 border-2 border-yellow-500 animate-in zoom-in">
+                                        💰 Hämta {readReward} kr!
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    </div>
 
                     <div className={`rounded-[2.5rem] p-6 sm:p-8 shadow-xl border-4 relative overflow-hidden transition-colors duration-500 ${isWalking ? 'bg-green-50 border-green-300' : 'bg-white border-slate-200'}`}>
-                        <div className="flex items-center gap-4 mb-6">
-                            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-4xl shadow-md ${isWalking ? 'bg-green-400 animate-bounce' : 'bg-slate-100'}`}>🚶‍♂️</div>
-                            <div>
-                                <h4 className="text-2xl font-black text-slate-800 uppercase tracking-wide">Ta en promenad</h4>
-                                <p className="text-slate-500 font-bold text-sm">Gå ut och rör på dig. Tjäna 1 kr per minut.</p>
-                            </div>
-                        </div>
+                        
+                        {/* Vektor-bakgrund: Midsommarkransen */}
+                        <svg className="absolute inset-0 w-full h-full object-cover z-0" viewBox="0 0 800 400" preserveAspectRatio="xMidYMid slice">
+                            {/* Himmel */}
+                            <rect width="800" height="400" fill="#bae6fd" />
+                            {/* Sol */}
+                            <circle cx="650" cy="100" r="50" fill="#fde047" />
+                            
+                            {/* Moln */}
+                            <g fill="#ffffff" opacity="0.8">
+                                <circle cx="200" cy="100" r="30" />
+                                <circle cx="230" cy="90" r="40" />
+                                <circle cx="260" cy="100" r="30" />
+                            </g>
+                            <g fill="#ffffff" opacity="0.6">
+                                <circle cx="600" cy="140" r="25" />
+                                <circle cx="630" cy="130" r="35" />
+                                <circle cx="660" cy="140" r="25" />
+                            </g>
 
-                        <div className="bg-slate-800 text-white rounded-2xl p-6 flex flex-col items-center mb-6 shadow-inner">
-                            <span className="text-6xl font-clock font-black tracking-widest">{formatTimer(walkTime)}</span>
-                            <div className="mt-4 text-center bg-slate-900 px-6 py-2 rounded-full border-2 border-slate-600">
-                                <span className="text-slate-400 font-bold uppercase text-xs mr-2">Du har tjänat:</span>
-                                <span className="text-green-400 font-black text-xl">+{walkEarned} kr</span>
-                            </div>
-                            {isWalking && !isMoving && (
-                                <div className="mt-4 text-orange-400 font-bold text-sm uppercase animate-pulse text-center">
-                                    Pausad: Ingen rörelse på 3 minuter
-                                </div>
-                            )}
-                            {isWalking && isMoving && (
-                                <div className="mt-4 text-green-400 font-bold text-sm uppercase animate-pulse text-center">
-                                    GPS-spårning aktiv 📍
-                                </div>
-                            )}
-                        </div>
+                            {/* Hus i Midsommarkransen (Gula och Röda) */}
+                            <rect x="50" y="150" width="180" height="250" fill="#fcd34d" rx="4" />
+                            <rect x="250" y="100" width="220" height="300" fill="#fca5a5" rx="4" />
+                            <rect x="490" y="160" width="160" height="240" fill="#fcd34d" rx="4" />
+                            
+                            {/* Fönster Hus 1 */}
+                            <rect x="80" y="180" width="35" height="50" fill="#e0f2fe" opacity="0.9" rx="2"/>
+                            <rect x="155" y="180" width="35" height="50" fill="#e0f2fe" opacity="0.9" rx="2"/>
+                            <rect x="80" y="260" width="35" height="50" fill="#e0f2fe" opacity="0.9" rx="2"/>
+                            <rect x="155" y="260" width="35" height="50" fill="#e0f2fe" opacity="0.9" rx="2"/>
+                            
+                            {/* Fönster Hus 2 */}
+                            <rect x="290" y="140" width="40" height="55" fill="#e0f2fe" opacity="0.9" rx="2"/>
+                            <rect x="390" y="140" width="40" height="55" fill="#e0f2fe" opacity="0.9" rx="2"/>
+                            <rect x="290" y="220" width="40" height="55" fill="#e0f2fe" opacity="0.9" rx="2"/>
+                            <rect x="390" y="220" width="40" height="55" fill="#e0f2fe" opacity="0.9" rx="2"/>
+                            <rect x="290" y="300" width="40" height="55" fill="#e0f2fe" opacity="0.9" rx="2"/>
+                            <rect x="390" y="300" width="40" height="55" fill="#e0f2fe" opacity="0.9" rx="2"/>
 
-                        <button 
-                            onClick={handleWalkAction} 
-                            className={`w-full py-4 rounded-xl font-black uppercase tracking-widest shadow-md transition-all active:scale-95 border-2 ${isWalking ? 'bg-green-500 text-white border-green-600 hover:bg-green-400' : 'bg-blue-600 text-white border-blue-700 hover:bg-blue-500'}`}
-                        >
-                            {!isWalking ? '▶ Börja gå!' : `⏹ Avsluta & Hämta ${walkEarned} kr`}
-                        </button>
+                            {/* Fönster Hus 3 */}
+                            <rect x="520" y="190" width="35" height="50" fill="#e0f2fe" opacity="0.9" rx="2"/>
+                            <rect x="585" y="190" width="35" height="50" fill="#e0f2fe" opacity="0.9" rx="2"/>
+                            <rect x="520" y="270" width="35" height="50" fill="#e0f2fe" opacity="0.9" rx="2"/>
+                            <rect x="585" y="270" width="35" height="50" fill="#e0f2fe" opacity="0.9" rx="2"/>
+
+                            {/* Grönska / Träd (Stora lummiga träd) */}
+                            <circle cx="80" cy="300" r="70" fill="#166534" />
+                            <circle cx="140" cy="280" r="80" fill="#15803d" />
+                            
+                            <circle cx="430" cy="290" r="85" fill="#166534" />
+                            <circle cx="500" cy="310" r="65" fill="#15803d" />
+                            
+                            <circle cx="700" cy="270" r="95" fill="#166534" />
+                            <circle cx="780" cy="300" r="70" fill="#15803d" />
+
+                            {/* Gata / Trottoar */}
+                            <rect x="0" y="340" width="800" height="60" fill="#94a3b8" />
+                            <rect x="0" y="340" width="800" height="8" fill="#cbd5e1" />
+
+                            {/* Människor och Hund */}
+                            <text x="550" y="385" fontSize="45">🚶‍♂️</text>
+                            <text x="600" y="385" fontSize="35">🐕</text>
+                            
+                            <text x="180" y="380" fontSize="40">🏃‍♀️</text>
+                            <text x="350" y="385" fontSize="40">🚶‍♀️</text>
+                        </svg>
+
+                        <div className="absolute inset-0 bg-slate-900/65 z-10 backdrop-blur-[1px]"></div>
+
+                        <div className="relative z-20">
+                            <div className="flex items-center gap-4 mb-6">
+                                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-4xl shadow-md ${isWalking ? 'bg-green-400 animate-bounce' : 'bg-white'}`}>🚶‍♂️</div>
+                                <div>
+                                    <h4 className="text-2xl font-black text-white uppercase tracking-wide drop-shadow-md">Ta en promenad</h4>
+                                    <p className="text-slate-200 font-bold text-sm drop-shadow-md">Gå ut och rör på dig. Tjäna 1 kr per minut.</p>
+                                </div>
+                            </div>
+
+                            <div className="text-white flex flex-col items-center mb-6">
+                                <span className="text-[5.5rem] leading-none font-clock font-black tracking-widest drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)]">{formatTimer(walkTime)}</span>
+                                <div className="mt-6 text-center bg-slate-900/80 px-6 py-2 rounded-full border-2 border-slate-500 shadow-xl backdrop-blur-md">
+                                    <span className="text-slate-300 font-bold uppercase text-xs mr-2">Du har tjänat:</span>
+                                    <span className="text-green-400 font-black text-xl">+{walkEarned} kr</span>
+                                </div>
+                                {isWalking && !isMoving && (
+                                    <div className="mt-4 text-orange-400 font-bold text-sm uppercase animate-pulse text-center drop-shadow-md bg-slate-900/80 px-4 py-2 rounded-xl">
+                                        Pausad: Ingen rörelse på 3 minuter
+                                    </div>
+                                )}
+                                {isWalking && isMoving && (
+                                    <div className="mt-4 text-green-400 font-bold text-sm uppercase animate-pulse text-center drop-shadow-md bg-slate-900/80 px-4 py-2 rounded-xl">
+                                        GPS-spårning aktiv 📍
+                                    </div>
+                                )}
+                            </div>
+
+                            <button 
+                                onClick={handleWalkAction} 
+                                className={`w-full py-4 rounded-xl font-black uppercase tracking-widest shadow-xl transition-all active:scale-95 border-2 ${isWalking ? 'bg-green-500 text-white border-green-600 hover:bg-green-400' : 'bg-blue-600 text-white border-blue-700 hover:bg-blue-500'}`}
+                            >
+                                {!isWalking ? '▶ Börja gå!' : `⏹ Avsluta & Hämta ${walkEarned} kr`}
+                            </button>
+                        </div>
                     </div>
 
                     <h3 className="text-slate-400 font-black uppercase tracking-widest px-4 text-sm font-clock mt-12 mb-4 border-b-2 border-slate-200 pb-2">🛒 Belöningsbutik</h3>
@@ -798,7 +1065,7 @@
         };
 
         // --- PARENT UI (MED INKORG) ---
-        function ParentUI({ activities, bankBalance, addMoney, db, appId, user, onLogout, messages }) {
+        function ParentUI({ activities, bankBalance, addMoney, setBankZero, db, appId, user, onLogout, messages }) {
             const [showAddForm, setShowAddForm] = useState(false);
             const [newTitle, setNewTitle] = useState('');
             const [newDate, setNewDate] = useState(new Date().toISOString().split('T')[0]);
@@ -806,6 +1073,7 @@
             const [newDuration, setNewDuration] = useState('60');
             const [newPrepTime, setNewPrepTime] = useState('0');
             const [isLiveEvent, setIsLiveEvent] = useState(false);
+            const [confirmReset, setConfirmReset] = useState(false);
 
             const handleAdd = async (e) => {
                 e.preventDefault();
@@ -885,12 +1153,27 @@
                         <h2 className="font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">💳 Adrians Virtuella Bank</h2>
                         <div className="text-6xl font-clock font-black mb-6">{bankBalance} <span className="text-2xl text-slate-400">kr</span></div>
                         <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mb-3">Justera saldo manuellt</p>
-                        <div className="grid grid-cols-4 gap-2">
+                        <div className="grid grid-cols-4 gap-2 mb-6">
                             <button onClick={() => addMoney(-10, false)} className="bg-red-500/20 text-red-400 border-2 border-red-500/50 hover:bg-red-500/40 p-3 rounded-xl font-black uppercase text-sm transition-all">-10</button>
                             <button onClick={() => addMoney(-50, false)} className="bg-red-500/20 text-red-400 border-2 border-red-500/50 hover:bg-red-500/40 p-3 rounded-xl font-black uppercase text-sm transition-all">-50</button>
                             <button onClick={() => addMoney(10, false)} className="bg-green-500/20 text-green-400 border-2 border-green-500/50 hover:bg-green-500/40 p-3 rounded-xl font-black uppercase text-sm transition-all">+10</button>
                             <button onClick={() => addMoney(50, false)} className="bg-green-500/20 text-green-400 border-2 border-green-500/50 hover:bg-green-500/40 p-3 rounded-xl font-black uppercase text-sm transition-all">+50</button>
                         </div>
+                        <button 
+                            onClick={() => {
+                                if(confirmReset) {
+                                    setBankZero();
+                                    setConfirmReset(false);
+                                } else {
+                                    setConfirmReset(true);
+                                    setTimeout(() => setConfirmReset(false), 3000);
+                                }
+                            }} 
+                            className={`w-full p-4 rounded-xl font-black uppercase text-sm transition-all flex items-center justify-center gap-2 border-2 ${confirmReset ? 'bg-red-600 text-white border-red-700' : 'bg-slate-700 text-slate-300 border-slate-600 hover:bg-slate-600'}`}
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                            {confirmReset ? "Tryck igen för att bekräfta!" : "Nolla kontot till 0 kr"}
+                        </button>
                     </div>
 
                     {showAddForm ? (
@@ -947,7 +1230,7 @@
         }
 
         // --- CHILD UI (WITH TABS) ---
-        function ChildUI({ activities, currentTime, bankBalance, bankStreak, addMoney, sendMessage, db, appId, onLogout, changeRole, notifsEnabled, enableNotifs, bedtimeInfo }) {
+        function ChildUI({ activities, currentTime, bankBalance, bankStreak, claimedQuests, addMoney, sendMessage, db, appId, onLogout, changeRole, notifsEnabled, enableNotifs, bedtimeInfo }) {
             const [activeTab, setActiveTab] = useState('schema');
             
             // Auto-återställning till schemat efter 2 minuters inaktivitet (för vägg-padda)
@@ -960,13 +1243,12 @@
                     }, 120000); // 120000 ms = 2 minuter
                 };
 
-                // Lyssna på att skärmen rörs
                 window.addEventListener('touchstart', resetToSchema);
                 window.addEventListener('click', resetToSchema);
                 window.addEventListener('scroll', resetToSchema);
                 window.addEventListener('mousemove', resetToSchema);
 
-                resetToSchema(); // Starta direkt
+                resetToSchema(); 
 
                 return () => {
                     clearTimeout(timeoutId);
@@ -993,6 +1275,13 @@
             return (
                 <div className="mt-4 relative pb-24">
                     
+                    {/* BARNSÄKER UTLOGGNING */}
+                    <div className="absolute -top-14 right-0 z-50">
+                        <button onDoubleClick={onLogout} className="p-3 text-slate-300 hover:text-slate-400 active:scale-95 transition-all bg-white rounded-full shadow-sm border-2 border-slate-100">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        </button>
+                    </div>
+
                     {/* MENYRADEN MED STÖRRE FOKUS PÅ SCHEMA */}
                     <div className="flex bg-slate-200/50 p-2 rounded-full mb-10 border-2 border-slate-200">
                         <button onClick={() => setActiveTab('schema')} className={`flex-[1.5] py-4 rounded-full font-black uppercase tracking-widest text-xs sm:text-sm transition-all flex items-center justify-center gap-2 ${activeTab === 'schema' ? 'bg-white text-blue-600 shadow-md scale-105' : 'text-slate-500 hover:bg-slate-200/50'}`}>
@@ -1105,11 +1394,12 @@
                         <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
                             <CalendarCard date={currentTime} />
                             <LearnClock />
+                            <LearnRhymes />
                         </div>
                     )}
 
                     {activeTab === 'earn' && (
-                        <EconomyTab addMoney={addMoney} bankBalance={bankBalance} bankStreak={bankStreak} sendMessage={sendMessage} />
+                        <EconomyTab addMoney={addMoney} bankBalance={bankBalance} bankStreak={bankStreak} claimedQuests={claimedQuests} sendMessage={sendMessage} />
                     )}
                 </div>
             );
@@ -1124,7 +1414,7 @@
             const [bankBalance, setBankBalance] = useState(0); 
             const [bankStreak, setBankStreak] = useState(0);
             const [lastActiveDate, setLastActiveDate] = useState('');
-            const [appTheme, setAppTheme] = useState(() => localStorage.getItem('adrian_theme') || 'default');
+            const [claimedQuests, setClaimedQuests] = useState({});
 
             const [currentTime, setCurrentTime] = useState(new Date());
             const [notifsEnabled, setNotifsEnabled] = useState(false);
@@ -1170,7 +1460,7 @@
                     if (err.code === 'permission-denied') setError("Databasen är låst. Kolla reglerna i Firebase.");
                 });
 
-                // Lyssna på Bank och Streaks
+                // Lyssna på Bank och Streaks (samt vilka quests som är hämtade idag)
                 const bankDoc = doc(db, 'artifacts', appId, 'public', 'data', 'bank', 'adrian');
                 const unsubBank = onSnapshot(bankDoc, (d) => {
                     if (d.exists()) {
@@ -1178,8 +1468,9 @@
                         setBankBalance(data.balance || 0);
                         setBankStreak(data.streak || 0);
                         setLastActiveDate(data.lastActive || '');
+                        setClaimedQuests(data.claimedQuests || {});
                     } else {
-                        setDoc(bankDoc, { balance: 0, streak: 0, lastActive: '' }).catch(console.error);
+                        setDoc(bankDoc, { balance: 0, streak: 0, lastActive: '', claimedQuests: {} }).catch(console.error);
                     }
                 });
 
@@ -1204,8 +1495,8 @@
                 }
             };
 
-            // Lägg till pengar OCH hantera streak
-            const addMoney = async (amount, isActivity = false) => {
+            // Lägg till pengar OCH hantera streak / spara dagens hämtade uppdrag
+            const addMoney = async (amount, isActivity = false, questId = null) => {
                 try {
                     const today = new Date().toISOString().split('T')[0];
                     let newStreak = bankStreak;
@@ -1222,13 +1513,33 @@
                     }
 
                     const bankDoc = doc(db, 'artifacts', appId, 'public', 'data', 'bank', 'adrian');
-                    await updateDoc(bankDoc, {
+                    
+                    const updates = {
                         balance: bankBalance + amount,
                         streak: isActivity ? newStreak : bankStreak,
                         lastActive: isActivity ? today : lastActiveDate
-                    });
+                    };
+
+                    // Om pengarna kom från ett specifikt uppdrag – lägg till det i låset!
+                    if (questId) {
+                        updates.claimedQuests = {
+                            ...claimedQuests,
+                            [questId]: Date.now()
+                        };
+                    }
+
+                    await updateDoc(bankDoc, updates);
                 } catch (err) {
                     console.error("Kunde inte uppdatera banken", err);
+                }
+            };
+
+            const setBankZero = async () => {
+                try {
+                    const bankDoc = doc(db, 'artifacts', appId, 'public', 'data', 'bank', 'adrian');
+                    await updateDoc(bankDoc, { balance: 0 });
+                } catch (err) {
+                    console.error("Kunde inte nolla banken", err);
                 }
             };
 
@@ -1275,10 +1586,9 @@
                 return { text: `${absMins} min kvar`, isLate: false };
             })(currentTime.getTime());
 
-            // --- VÄLJ ANVÄNDARE ---
             if (!role) {
                 return (
-                    <div className={`flex flex-col min-h-screen items-center justify-center p-6 bg-slate-50 relative ${appTheme === 'hacker' ? 'invert hue-rotate-180 bg-slate-900' : ''}`}>
+                    <div className="flex flex-col min-h-screen items-center justify-center p-6 bg-slate-50 relative">
                         <div className="flex flex-col w-full max-w-lg">
                             <button onClick={() => changeRole('child')} className="bg-red-600 border-b-[16px] border-red-800 rounded-[4rem] p-12 sm:p-20 shadow-2xl active:translate-y-4 active:border-b-0 transition-all flex flex-col items-center justify-center min-h-[60vh]">
                                 <div className="w-32 h-32 sm:w-40 sm:h-40 mb-8 bg-white rounded-[2rem] flex items-center justify-center transform rotate-12 shadow-xl"><div className="w-12 h-12 sm:w-16 sm:h-16 bg-red-600 rounded-xl"></div></div>
@@ -1291,7 +1601,7 @@
             }
 
             return (
-                <div className={`min-h-screen ${appTheme === 'hacker' ? 'invert hue-rotate-180 bg-slate-900' : 'bg-slate-100'}`}>
+                <div className="min-h-screen bg-slate-100">
                     <div className="max-w-3xl mx-auto p-4 md:p-8 pb-20 relative">
                         <audio ref={audioRef} src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto" />
                         
@@ -1307,6 +1617,7 @@
                                 messages={messages}
                                 bankBalance={bankBalance} 
                                 addMoney={addMoney} 
+                                setBankZero={setBankZero}
                                 db={db} 
                                 appId={appId} 
                                 user={user} 
@@ -1318,6 +1629,7 @@
                                 currentTime={currentTime} 
                                 bankBalance={bankBalance} 
                                 bankStreak={bankStreak}
+                                claimedQuests={claimedQuests}
                                 addMoney={addMoney} 
                                 sendMessage={sendMessage}
                                 db={db} 
