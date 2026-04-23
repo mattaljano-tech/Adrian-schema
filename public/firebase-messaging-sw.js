@@ -14,14 +14,7 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// Denna del gör att notisen visas även när appen är helt stängd
+// Firebase fixar notisen automatiskt, vi loggar den bara för felsökning
 messaging.onBackgroundMessage((payload) => {
-  console.log('Bakgrundsnotis mottagen:', payload);
-  const notificationTitle = payload.notification.title;
-  const notificationOptions = {
-    body: payload.notification.body,
-    icon: '/icon-270.png' // Se till att sökvägen till din ikon är rätt
-  };
-
-  self.registration.showNotification(notificationTitle, notificationOptions);
+  console.log('Bakgrundsnotis mottagen (Firebase visar denna automatiskt):', payload);
 });
