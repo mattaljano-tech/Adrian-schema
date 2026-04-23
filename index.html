@@ -1851,22 +1851,32 @@ useEffect(() => {
                         setNotifsEnabled(true);
                         audioRef.current?.play().catch(e => console.log("Init audio failed", e));
 
-                        // Nu hämtar vi en push-token (ett unikt ID för plattan) från Firebase
+                        // 1. Tvinga appen att använda rätt Service Worker för notiserna
+                        const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+
+                        // 2. Hämta token från Google
                         const messaging = getMessaging(app);
                         const currentToken = await getToken(messaging, { 
-                            vapidKey: 'BKc6Jlfn6UU5KfzfPeOl56Pj5gFfQflQeroH8hEenz3OoeiFrfQldwhKD1c38OMP9ydhPVdOyvlE4C-Schh-OsA' 
+                            vapidKey: 'BKc6Jlfn6UU5KfzfPeOl56Pj5gFfQflQeroH8hEenz3OoeiFrfQldwhKD1c38OMP9ydhPVdOyvlE4C-Schh-OsA',
+                            serviceWorkerRegistration: registration 
                         });
 
                         if (currentToken) {
                             console.log("Fick Token!", currentToken);
-                            // Vi sparar detta unika ID i databasen så vi kan skicka notiser HÄR!
-                            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'push_tokens', 'adrian'), { 
+                            
+                            // 3. Spara till RÄTT mapp i databasen! (device_tokens -> adrians_telefon)
+                            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'device_tokens', 'adrians_telefon'), { 
                                 token: currentToken 
                             });
+                            
+                            alert("BINGO! Token hämtad och sparad i databasen!");
+                        } else {
+                            alert("Kunde inte hämta nyckeln från Google.");
                         }
                     }
                 } catch (error) {
                     console.error("Kunde inte aktivera push-notiser", error);
+                    alert("Fel vid hämtning: " + error.message);
                 }
             };
 
