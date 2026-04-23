@@ -1,8 +1,8 @@
-// Importera Firebase (vi använder compat-versionen för Service Workers)
 importScripts('https://www.gstatic.com/firebasejs/11.6.1/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/11.6.1/firebase-messaging-compat.js');
 
-// Samma inställningar som i din HTML-fil
+// --- DIN FIREBASE CONFIG ---
+// Dessa MÅSTE vara exakt samma som i din index.html
 firebase.initializeApp({
     apiKey: "AIzaSyD32139sl-MYBnStg5FsGA5tIXS9wQ15JI",
     authDomain: "adrians-schema.firebaseapp.com",
@@ -14,16 +14,14 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// Lyssnar efter notiser när appen är stängd eller i bakgrunden
-messaging.onBackgroundMessage(function(payload) {
-    console.log('[firebase-messaging-sw.js] Tog emot meddelande i bakgrunden', payload);
-    
-    const notificationTitle = payload.notification.title || "Nytt i Schemat!";
-    const notificationOptions = {
-        body: payload.notification.body || "Gå in i appen och kolla!",
-        icon: '/icon-270.png', 
-        vibrate: [200, 100, 200]
-    };
+// Denna del gör att notisen visas även när appen är helt stängd
+messaging.onBackgroundMessage((payload) => {
+  console.log('Bakgrundsnotis mottagen:', payload);
+  const notificationTitle = payload.notification.title;
+  const notificationOptions = {
+    body: payload.notification.body,
+    icon: '/icon-270.png' // Se till att sökvägen till din ikon är rätt
+  };
 
-    self.registration.showNotification(notificationTitle, notificationOptions);
+  self.registration.showNotification(notificationTitle, notificationOptions);
 });
