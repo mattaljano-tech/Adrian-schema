@@ -1690,6 +1690,13 @@
 
             const [currentTime, setCurrentTime] = useState(new Date());
             const [notifsEnabled, setNotifsEnabled] = useState(false);
+
+// NY KOD: Kolla om notiser redan är godkända när appen startar!
+useEffect(() => {
+    if ('Notification' in window && Notification.permission === 'granted') {
+        setNotifsEnabled(true);
+    }
+}, []);
             const [error, setError] = useState(null);
             const audioRef = useRef(null);
             const firedNotifs = useRef(new Set());
