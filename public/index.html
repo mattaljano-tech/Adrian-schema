@@ -1863,9 +1863,9 @@
                         // 2. Hämta token från Google
                         const messaging = getMessaging(app);
                         const currentToken = await getToken(messaging, { 
-                            vapidKey: 'BKc6JIfn6UU5KfzfPe0l56Pj5gFfQflQeroH8hEenz3OoeiFrfQIdwhKD1c380MP9ydhPVdOyvIE4C-Schh-0sA',
-                            serviceWorkerRegistration: registration 
-                        });
+    vapidKey: 'BKc6JIfn6UU5KfzfPe0l56Pj5gFfQflQeroH8hEenz3OoeiFrfQIdwhKD1c380MP9ydhPVdOyvIE4C-Schh-0sA',
+    serviceWorkerRegistration: registration 
+});
 
                         if (currentToken) {
                             console.log("Fick Token!", currentToken);
