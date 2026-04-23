@@ -1,9 +1,8 @@
-
-// Importera Firebase (Compat-versionen krävs för Service Workers)
+// Importera Firebase (vi använder compat-versionen för Service Workers)
 importScripts('https://www.gstatic.com/firebasejs/11.6.1/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/11.6.1/firebase-messaging-compat.js');
 
-// Samma config som i din app
+// Samma inställningar som i din HTML-fil
 firebase.initializeApp({
     apiKey: "AIzaSyD32139sl-MYBnStg5FsGA5tIXS9wQ15JI",
     authDomain: "adrians-schema.firebaseapp.com",
@@ -15,16 +14,15 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// Lyssnar efter notiser när appen är stängd
-messaging.onBackgroundMessage((payload) => {
-    console.log('Mottog bakgrundsnotis: ', payload);
-
+// Lyssnar efter notiser när appen är stängd eller i bakgrunden
+messaging.onBackgroundMessage(function(payload) {
+    console.log('[firebase-messaging-sw.js] Tog emot meddelande i bakgrunden', payload);
+    
     const notificationTitle = payload.notification.title;
     const notificationOptions = {
         body: payload.notification.body,
-        icon: '/icon.png', // Lägg till en ikon om du har
-        badge: '/icon.png',
-        vibrate: [200, 100, 200, 100, 200, 100, 200] // Tvingar fram vibration
+        icon: '/icon-192.png', // Samma ikon som till hemskärmen!
+        vibrate: [200, 100, 200]
     };
 
     self.registration.showNotification(notificationTitle, notificationOptions);
