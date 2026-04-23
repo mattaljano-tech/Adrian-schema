@@ -18,10 +18,10 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage(function(payload) {
     console.log('[firebase-messaging-sw.js] Tog emot meddelande i bakgrunden', payload);
     
-    const notificationTitle = payload.notification.title;
+    const notificationTitle = payload.notification.title || "Nytt i Schemat!";
     const notificationOptions = {
-        body: payload.notification.body,
-        icon: '/icon-192.png', // Samma ikon som till hemskärmen!
+        body: payload.notification.body || "Gå in i appen och kolla!",
+        icon: '/icon-270.png', 
         vibrate: [200, 100, 200]
     };
 
