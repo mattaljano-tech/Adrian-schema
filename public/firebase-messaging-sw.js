@@ -2,7 +2,6 @@ importScripts('https://www.gstatic.com/firebasejs/11.6.1/firebase-app-compat.js'
 importScripts('https://www.gstatic.com/firebasejs/11.6.1/firebase-messaging-compat.js');
 
 // --- DIN FIREBASE CONFIG ---
-// Dessa MÅSTE vara exakt samma som i din index.html
 firebase.initializeApp({
     apiKey: "AIzaSyD32139sl-MYBnStg5FsGA5tIXS9wQ15JI",
     authDomain: "adrians-schema.firebaseapp.com",
@@ -14,7 +13,7 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// Firebase fixar notisen automatiskt, vi loggar den bara för felsökning
-messaging.onBackgroundMessage((payload) => {
-  console.log('Bakgrundsnotis mottagen (Firebase visar denna automatiskt):', payload);
-});
+// KLART! 
+// Vi har raderat 'messaging.onBackgroundMessage' helt. 
+// Nu låter vi Firebase hantera bakgrundsnotiserna automatiskt 
+// så slipper vi både dubbletter och Chromes varningsmeddelande.
