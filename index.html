@@ -2,45 +2,32 @@
 <html lang="sv">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Adrians Schema</title>
+    
     <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#f1f5f9">
+    
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&display=swap" rel="stylesheet">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Adrian">
+    <link rel="apple-touch-icon" href="icon-192.png"> <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- React & ReactDOM -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <!-- Framer Motion -->
     <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
-    <!-- Babel -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+    
     <style>
-        .font-clock {
-            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif !important;
-            font-weight: 800 !important;
-        }
-        .font-roblox {
-            font-family: 'Black Han Sans', sans-serif !important;
-        }
+        .font-clock { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif !important; font-weight: 800 !important; }
+        .font-roblox { font-family: 'Black Han Sans', sans-serif !important; }
         
-        @keyframes pulse-dot {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(0.8); }
-        }
+        /* Förhindrar att han råkar markera text när han trycker på knappar */
+        body { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+        
+        @keyframes pulse-dot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.8); } }
         .animate-dot { animation: pulse-dot 1.5s infinite; }
-
-        @keyframes flow-line {
-            from { stroke-dashoffset: 24; }
-            to { stroke-dashoffset: 0; }
-        }
-        .animate-flow {
-            stroke-dasharray: 12;
-            animation: flow-line 1s linear infinite;
-        }
         
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: transparent; }
