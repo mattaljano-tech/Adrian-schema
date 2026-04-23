@@ -1852,9 +1852,9 @@
                         // 2. Hämta token från Google
                         const messaging = getMessaging(app);
                         const currentToken = await getToken(messaging, { 
-                            vapidKey: 'BKc6Jlfn6UU5KfzfPeOl56Pj5gFfQflQeroH8hEenz3OoeiFrfQldwhKD1c38OMP9ydhPVdOyvlE4C-Schh-OsA'
-                            serviceWorkerRegistration: registration 
-                        });
+    vapidKey: 'BKc6Jlfn6UU5KfzfPeOl56Pj5gFfQflQeroH8hEenz3OoeiFrfQldwhKD1c38OMP9ydhPVdOyvlE4C-Schh-OsA', // <--- KOMMAT SAKNADES HÄR!
+    serviceWorkerRegistration: registration 
+});
 
                         if (currentToken) {
                             console.log("Fick Token!", currentToken);
