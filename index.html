@@ -41,6 +41,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, doc, setDoc, deleteDoc, updateDoc, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-messaging.js";
         
         const { useState, useEffect, useRef } = React;
         const { motion, AnimatePresence } = window.Motion;
@@ -1831,17 +1832,35 @@
                 });
             }, [currentTime, notifsEnabled, activities, role]);
 
-            const enableNotifs = () => {
+            const enableNotifs = async () => {
                 if (!window.Notification) {
                     alert("Notiser stöds inte. På iPhone MÅSTE du trycka på 'Dela' -> 'Lägg till på hemskärmen' först!");
                     return;
                 }
-                Notification.requestPermission().then(p => {
-                    if (p === 'granted') {
+
+                try {
+                    const permission = await Notification.requestPermission();
+                    if (permission === 'granted') {
                         setNotifsEnabled(true);
                         audioRef.current?.play().catch(e => console.log("Init audio failed", e));
+
+                        // Nu hämtar vi en push-token (ett unikt ID för plattan) från Firebase
+                        const messaging = getMessaging(app);
+                        const currentToken = await getToken(messaging, { 
+                            vapidKey: 'BKc6Jlfn6UU5KfzfPeOl56Pj5gFfQflQeroH8hEenz3OoeiFrfQldwhKD1c38OMP9ydhPVdOyvlE4C-Schh-OsA' 
+                        });
+
+                        if (currentToken) {
+                            console.log("Fick Token!", currentToken);
+                            // Vi sparar detta unika ID i databasen så vi kan skicka notiser HÄR!
+                            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'push_tokens', 'adrian'), { 
+                                token: currentToken 
+                            });
+                        }
                     }
-                });
+                } catch (error) {
+                    console.error("Kunde inte aktivera push-notiser", error);
+                }
             };
 
             const bedtimeInfo = ((currentMs) => {
