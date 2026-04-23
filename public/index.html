@@ -619,7 +619,9 @@
                 { id: 'q10', title: "Hjärngympa & Lärande", icon: "🧠", type: "checklist", list: 'learn' },
                 { id: 'q9', title: "Egen Fysisk Utmaning", icon: "🏃‍♂️", type: "checklist", list: 'physical' },
                 { id: 'q7', title: "Gymmet med Mamma", reward: 30, icon: "🏋️‍♀️", type: "simple" },
-                { id: 'q8', title: "Spela fotboll med Mathias", reward: 30, icon: "⚽", type: "simple" }
+                { id: 'q8', title: "Spela fotboll med Mathias", reward: 30, icon: "⚽", type: "simple" },
+                { id: 'q11', title: "Mindfulness (5 min)", reward: 5, icon: "🧘", type: "simple" },
+                { id: 'q12', title: "Lyssna på musik (10 min)", reward: 10, icon: "🎧", type: "simple" }
             ];
 
             const shopItems = [
@@ -1362,13 +1364,13 @@
             let timeline = [];
             if (activeAndFuture.length > 0) {
                 const firstEvent = activeAndFuture[0];
-                // Skapa en Fritid-box om första saken börjar i framtiden (gapet just nu)
+                // Skapa en box om första saken börjar i framtiden (gapet just nu)
                 if (firstEvent.startTime > now) {
                     const gapMs = firstEvent.startTime - now;
                     if (gapMs >= 60000) { 
                         timeline.push({
                             id: 'gap-initial',
-                            title: 'Fritid / Vila 🎮',
+                            title: 'Välj ett uppdrag 🎯', // Ändrat här
                             startTime: now,
                             endTime: firstEvent.startTime,
                             duration: Math.round(gapMs / 60000),
@@ -1384,10 +1386,10 @@
                         const currentEvent = activeAndFuture[i];
                         const nextEvent = activeAndFuture[i+1];
                         const gapMs = nextEvent.startTime - currentEvent.endTime;
-                        if (gapMs >= 2 * 60000) { // Skapa Fritids-box om gapet är över 2 min
+                        if (gapMs >= 2 * 60000) { // Skapa box om gapet är över 2 min
                             timeline.push({
                                 id: `gap-${currentEvent.id}`,
-                                title: 'Fritid / Vila 🎮',
+                                title: 'Välj ett uppdrag 🎯', // Ändrat här
                                 startTime: currentEvent.endTime,
                                 endTime: nextEvent.startTime,
                                 duration: Math.round(gapMs / 60000),
@@ -1550,26 +1552,34 @@
                                 ) : (
                                     <div className="bg-white p-10 rounded-[3rem] border-4 border-slate-200 shadow-xl flex flex-col items-center text-center relative overflow-hidden">
                                         <div className="flex gap-6 mb-8 relative z-10">
-                                            <div className="w-16 h-12 bg-red-600 rounded-2xl flex items-center justify-center transform -rotate-6 shadow-lg"><div className="w-0 h-0 border-t-[6px] border-t-transparent border-l-[10px] border-l-white border-b-[6px] border-b-transparent ml-1"></div></div>
-                                            <div className="w-14 h-14 bg-slate-800 rounded-xl flex items-center justify-center transform rotate-12 shadow-lg"><div className="w-6 h-6 bg-white rounded-sm"></div></div>
+                                            <div className="w-16 h-14 bg-emerald-500 rounded-2xl flex items-center justify-center transform -rotate-6 shadow-lg text-3xl">🎯</div>
+                                            <div className="w-14 h-14 bg-yellow-400 rounded-xl flex items-center justify-center transform rotate-12 shadow-lg text-3xl">💰</div>
                                         </div>
-                                        <h2 className="text-4xl font-black text-slate-800 uppercase mb-4">Fritid!</h2>
-                                        <p className="text-slate-500 font-bold uppercase text-xs tracking-widest font-clock mb-6">Dags för Roblox eller YouTube!</p>
+                                        <h2 className="text-3xl sm:text-4xl font-black text-slate-800 uppercase mb-4">Dags för uppdrag!</h2>
+                                        <p className="text-slate-500 font-bold uppercase text-xs tracking-widest font-clock mb-6">Perfekt läge att välja ett uppdrag och tjäna pengar!</p>
                                         
                                         {current && current.isGap && (
                                             <div className="bg-slate-50 p-6 rounded-[2rem] border-2 border-slate-100 shadow-inner w-full flex flex-col items-center mt-2">
-                                                <span className="text-slate-400 font-black uppercase text-[10px] mb-2 tracking-widest">Tid kvar av vilan</span>
+                                                <span className="text-slate-400 font-black uppercase text-[10px] mb-2 tracking-widest">Tid kvar till nästa sak i schemat</span>
                                                 <div className="flex items-baseline gap-1 font-clock text-4xl sm:text-5xl text-slate-700">
                                                     {getRem(current.endTime).h > 0 && <><span className="leading-none">{pad(getRem(current.endTime).h)}</span><span className="text-slate-300 text-2xl">:</span></>}
                                                     <span className="leading-none">{pad(getRem(current.endTime).m)}</span>
                                                     <span className="text-slate-300 text-2xl">:</span>
                                                     <span className="leading-none">{pad(getRem(current.endTime).s)}</span>
                                                 </div>
+                                                
+                                                <motion.button 
+                                                    whileHover={{ scale: 1.05 }}
+                                                    whileTap={{ scale: 0.95 }}
+                                                    onClick={() => setActiveTab('earn')}
+                                                    className="mt-6 bg-emerald-500 text-white px-6 py-3 rounded-full font-black uppercase text-sm shadow-md border-b-4 border-emerald-700"
+                                                >
+                                                    Gå till Uppdrag
+                                                </motion.button>
                                             </div>
                                         )}
                                     </div>
                                 )}
-
                                 {/* FRAMTIDA UPPDRAG MED TYDLIG NEDRÄKNING PÅ NÄSTA */}
                                 {future.length > 0 && (
                                     <div className="space-y-6 pt-8 border-t-[3px] border-dashed border-slate-300">
@@ -1692,6 +1702,7 @@
             const [notifsEnabled, setNotifsEnabled] = useState(
     'Notification' in window && Notification.permission === 'granted'
 );
+
             const [error, setError] = useState(null);
             const audioRef = useRef(null);
             const firedNotifs = useRef(new Set());
@@ -1850,11 +1861,11 @@
                         const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
 
                         // 2. Hämta token från Google
-const messaging = getMessaging(app);
-const currentToken = await getToken(messaging, { 
-    vapidKey: 'BKc6JIfn6UU5KfzfPe0l56Pj5gFfQflQeroH8hEenz3OoeiFrfQIdwhKD1c380MP9ydhPVdOyvIE4C-Schh-0sA',
-    serviceWorkerRegistration: registration 
-});
+                        const messaging = getMessaging(app);
+                        const currentToken = await getToken(messaging, { 
+                            vapidKey: 'BKc6JIfn6UU5KfzfPe0l56Pj5gFfQflQeroH8hEenz3OoeiFrfQIdwhKD1c380MP9ydhPVdOyvIE4C-Schh-0sA',
+                            serviceWorkerRegistration: registration 
+                        });
 
                         if (currentToken) {
                             console.log("Fick Token!", currentToken);
