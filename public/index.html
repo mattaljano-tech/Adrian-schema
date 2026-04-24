@@ -1086,9 +1086,9 @@
         };
 
         // --- PARENT UI (MED INKORG OCH NYA INSTÄLLNINGAR) ---
-            function ParentUI({ activities, bankBalance, addMoney, setBankZero, adminName, setAdminName, dailyMessage, setDailyMessage, db, appId, user, onLogout, messages }) {
+        function ParentUI({ activities, bankBalance, addMoney, setBankZero, adminName, setAdminName, dailyMessage, setDailyMessage, db, appId, user, onLogout, messages }) {
             const [showAddForm, setShowAddForm] = useState(false);
-            const [editingId, setEditingId] = useState(null); // NYTT: Håller koll på vilken vi redigerar
+            const [editingId, setEditingId] = useState(null);
             const [newTitle, setNewTitle] = useState('');
             const [newDate, setNewDate] = useState(new Date().toISOString().split('T')[0]);
             const [newStartTime, setNewStartTime] = useState('');
@@ -1100,25 +1100,24 @@
             const [localAdminName, setLocalAdminName] = useState(adminName);
             const [localDailyMessage, setLocalDailyMessage] = useState(dailyMessage);
             
-            // NY FUNKTION: Fyller i formuläret med vald uppgift
-    const handleEdit = (activity) => {
-        setEditingId(activity.id);
-        setNewTitle(activity.title);
-        
-        const d = new Date(activity.startTime);
-        const year = d.getFullYear();
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        setNewDate(`${year}-${month}-${day}`);
-        
-        setNewStartTime(d.toLocaleTimeString('sv-SE', {hour: '2-digit', minute:'2-digit'}));
-        setNewDuration(activity.duration.toString());
-        setNewPrepTime((activity.prepTime || 0).toString());
-        setIsLiveEvent(activity.isLiveEvent || false);
-        
-        setShowAddForm(true);
-        window.scrollTo({ top: 0, behavior: 'smooth' }); // Scrollar automatiskt upp!
-    };
+            const handleEdit = (activity) => {
+                setEditingId(activity.id);
+                setNewTitle(activity.title);
+                
+                const d = new Date(activity.startTime);
+                const year = d.getFullYear();
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                setNewDate(`${year}-${month}-${day}`);
+                
+                setNewStartTime(d.toLocaleTimeString('sv-SE', {hour: '2-digit', minute:'2-digit'}));
+                setNewDuration(activity.duration.toString());
+                setNewPrepTime((activity.prepTime || 0).toString());
+                setIsLiveEvent(activity.isLiveEvent || false);
+                
+                setShowAddForm(true);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            };
 
             const handleAdd = async (e) => {
                 e.preventDefault();
@@ -1131,32 +1130,30 @@
                 const startMs = new Date(y, m - 1, d, h, min).getTime();
                 
                 const activity = {
-            title: finalTitle,
-            startTime: startMs,
-            endTime: startMs + (Number(newDuration) * 60 * 1000),
-            duration: Number(newDuration),
-            prepTime: Number(newPrepTime),
-            isLiveEvent: isLiveEvent
-        };
-        
-        try {
-            if (editingId) {
-                // Uppdatera befintlig uppgift
-                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'schedule_items', editingId);
-                await updateDoc(docRef, activity);
-            } else {
-                // Skapa helt ny uppgift
-                activity.createdAt = Date.now();
-                const colPath = collection(db, 'artifacts', appId, 'public', 'data', 'schedule_items');
-                await setDoc(doc(colPath), activity);
-            }
-            // Återställ allt
-            setShowAddForm(false); 
-            setEditingId(null); 
-            setNewTitle(''); 
-            setNewDuration('60'); 
-            setIsLiveEvent(false);
-        } catch (err) { console.error("Write error:", err); }
+                    title: finalTitle,
+                    startTime: startMs,
+                    endTime: startMs + (Number(newDuration) * 60 * 1000),
+                    duration: Number(newDuration),
+                    prepTime: Number(newPrepTime),
+                    isLiveEvent: isLiveEvent
+                };
+                
+                try {
+                    if (editingId) {
+                        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'schedule_items', editingId);
+                        await updateDoc(docRef, activity);
+                    } else {
+                        activity.createdAt = Date.now();
+                        const colPath = collection(db, 'artifacts', appId, 'public', 'data', 'schedule_items');
+                        await setDoc(doc(colPath), activity);
+                    }
+                    setShowAddForm(false); 
+                    setEditingId(null); 
+                    setNewTitle(''); 
+                    setNewDuration('60'); 
+                    setIsLiveEvent(false);
+                } catch (err) { console.error("Write error:", err); }
+            };
 
             const handleShift = async (activity, mins) => {
                 if (!user) return;
@@ -1295,58 +1292,57 @@
 
                     {showAddForm ? (
                         <form onSubmit={handleAdd} className="bg-white p-6 rounded-3xl border-2 border-slate-200 shadow-xl space-y-4">
-    <input type="text" value={newTitle} onChange={e => setNewTitle(e.target.value)} className="w-full p-3 bg-slate-50 border rounded-xl font-bold" placeholder={isLiveEvent ? "Steal a brainroth" : "Uppdragsnamn..."} />
-    
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <input type="date" value={newDate} onChange={e => setNewDate(e.target.value)} className="p-3 bg-slate-50 border rounded-xl font-clock" />
-        <input type="time" value={newStartTime} onChange={e => setNewStartTime(e.target.value)} className="p-3 bg-slate-50 border rounded-xl font-clock" />
-    </div>
+                            <input type="text" value={newTitle} onChange={e => setNewTitle(e.target.value)} className="w-full p-3 bg-slate-50 border rounded-xl font-bold" placeholder={isLiveEvent ? "Steal a brainroth" : "Uppdragsnamn..."} />
+                            
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <input type="date" value={newDate} onChange={e => setNewDate(e.target.value)} className="p-3 bg-slate-50 border rounded-xl font-clock" />
+                                <input type="time" value={newStartTime} onChange={e => setNewStartTime(e.target.value)} className="p-3 bg-slate-50 border rounded-xl font-clock" />
+                            </div>
 
-    {/* NY LÄNGD-VÄLJARE MED SNABBKNAPPAR */}
-    <div className="p-4 bg-slate-50 border rounded-xl space-y-3">
-        <div className="text-xs font-black uppercase text-slate-500 flex justify-between items-center">
-            <span>Längd på uppdraget:</span>
-            <span className="text-blue-600 text-lg">{formatDuration(Number(newDuration))}</span>
-        </div>
-        
-        <div className="flex flex-wrap gap-2">
-            <button type="button" onClick={() => setNewDuration('60')} className="px-3 py-2 bg-white border border-slate-300 rounded-lg font-bold text-xs hover:bg-slate-100 shadow-sm">1 tim</button>
-            <button type="button" onClick={() => setNewDuration('120')} className="px-3 py-2 bg-white border border-slate-300 rounded-lg font-bold text-xs hover:bg-slate-100 shadow-sm">2 tim</button>
-            <button type="button" onClick={() => setNewDuration('180')} className="px-3 py-2 bg-white border border-slate-300 rounded-lg font-bold text-xs hover:bg-slate-100 shadow-sm">3 tim</button>
-            
-            <div className="w-[2px] bg-slate-200 mx-1"></div>
-            
-            <button type="button" onClick={() => setNewDuration((Number(newDuration) + 15).toString())} className="px-3 py-2 bg-blue-100 text-blue-700 rounded-lg font-bold text-xs hover:bg-blue-200 shadow-sm">+ 15 min</button>
-            <button type="button" onClick={() => setNewDuration((Number(newDuration) + 30).toString())} className="px-3 py-2 bg-blue-100 text-blue-700 rounded-lg font-bold text-xs hover:bg-blue-200 shadow-sm">+ 30 min</button>
-            <button type="button" onClick={() => setNewDuration((Number(newDuration) + 45).toString())} className="px-3 py-2 bg-blue-100 text-blue-700 rounded-lg font-bold text-xs hover:bg-blue-200 shadow-sm">+ 45 min</button>
-        </div>
-    </div>
-    
-    <select value={newPrepTime} onChange={e => setNewPrepTime(e.target.value)} className="w-full p-3 bg-orange-50 border rounded-xl font-clock">
-        <option value="0">Ingen förberedelse</option>
-        <option value="5">5 min innan</option>
-        <option value="10">10 min innan</option>
-        <option value="15">15 min innan</option>
-    </select>
-    
-    <label className="flex items-center gap-3 p-3 bg-slate-50 border rounded-xl cursor-pointer">
-        <input type="checkbox" checked={isLiveEvent} onChange={e => setIsLiveEvent(e.target.checked)} className="w-5 h-5 rounded text-blue-600" />
-        <span className="font-black uppercase text-xs">Steal a brainroth Event</span>
-    </label>
-    
-    <div className="flex gap-2">
-        <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} type="button" onClick={() => { setShowAddForm(false); setEditingId(null); setNewDuration('60'); setNewTitle(''); }} className="flex-1 p-3 bg-slate-200 rounded-xl font-black uppercase text-xs">Avbryt</motion.button>
-        <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} type="submit" className="flex-1 p-3 bg-blue-600 text-white rounded-xl font-black uppercase text-xs shadow-lg">Spara</motion.button>
-    </div>
-</form>
+                            <div className="p-4 bg-slate-50 border rounded-xl space-y-3">
+                                <div className="text-xs font-black uppercase text-slate-500 flex justify-between items-center">
+                                    <span>Längd på uppdraget:</span>
+                                    <span className="text-blue-600 text-lg">{formatDuration(Number(newDuration))}</span>
+                                </div>
+                                
+                                <div className="flex flex-wrap gap-2">
+                                    <button type="button" onClick={() => setNewDuration('60')} className="px-3 py-2 bg-white border border-slate-300 rounded-lg font-bold text-xs hover:bg-slate-100 shadow-sm">1 tim</button>
+                                    <button type="button" onClick={() => setNewDuration('120')} className="px-3 py-2 bg-white border border-slate-300 rounded-lg font-bold text-xs hover:bg-slate-100 shadow-sm">2 tim</button>
+                                    <button type="button" onClick={() => setNewDuration('180')} className="px-3 py-2 bg-white border border-slate-300 rounded-lg font-bold text-xs hover:bg-slate-100 shadow-sm">3 tim</button>
+                                    
+                                    <div className="w-[2px] bg-slate-200 mx-1"></div>
+                                    
+                                    <button type="button" onClick={() => setNewDuration((Number(newDuration) + 15).toString())} className="px-3 py-2 bg-blue-100 text-blue-700 rounded-lg font-bold text-xs hover:bg-blue-200 shadow-sm">+ 15 min</button>
+                                    <button type="button" onClick={() => setNewDuration((Number(newDuration) + 30).toString())} className="px-3 py-2 bg-blue-100 text-blue-700 rounded-lg font-bold text-xs hover:bg-blue-200 shadow-sm">+ 30 min</button>
+                                    <button type="button" onClick={() => setNewDuration((Number(newDuration) + 45).toString())} className="px-3 py-2 bg-blue-100 text-blue-700 rounded-lg font-bold text-xs hover:bg-blue-200 shadow-sm">+ 45 min</button>
+                                </div>
+                            </div>
+                            
+                            <select value={newPrepTime} onChange={e => setNewPrepTime(e.target.value)} className="w-full p-3 bg-orange-50 border rounded-xl font-clock">
+                                <option value="0">Ingen förberedelse</option>
+                                <option value="5">5 min innan</option>
+                                <option value="10">10 min innan</option>
+                                <option value="15">15 min innan</option>
+                            </select>
+                            
+                            <label className="flex items-center gap-3 p-3 bg-slate-50 border rounded-xl cursor-pointer">
+                                <input type="checkbox" checked={isLiveEvent} onChange={e => setIsLiveEvent(e.target.checked)} className="w-5 h-5 rounded text-blue-600" />
+                                <span className="font-black uppercase text-xs">Steal a brainroth Event</span>
+                            </label>
+                            
+                            <div className="flex gap-2">
+                                <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} type="button" onClick={() => { setShowAddForm(false); setEditingId(null); setNewDuration('60'); setNewTitle(''); }} className="flex-1 p-3 bg-slate-200 rounded-xl font-black uppercase text-xs">Avbryt</motion.button>
+                                <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} type="submit" className="flex-1 p-3 bg-blue-600 text-white rounded-xl font-black uppercase text-xs shadow-lg">Spara</motion.button>
+                            </div>
+                        </form>
                     ) : (
                         <motion.button 
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => { setShowAddForm(true); setEditingId(null); setNewTitle(''); setNewDuration('60'); }} 
-                        className="w-full py-6 border-4 border-dashed border-blue-200 bg-white text-blue-600 rounded-[2.5rem] font-black uppercase tracking-widest"
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => { setShowAddForm(true); setEditingId(null); setNewTitle(''); setNewDuration('60'); }} 
+                            className="w-full py-6 border-4 border-dashed border-blue-200 bg-white text-blue-600 rounded-[2.5rem] font-black uppercase tracking-widest"
                         >
-                         + Lägg till uppdrag
+                            + Lägg till uppdrag
                         </motion.button>
                     )}
 
@@ -1362,23 +1358,23 @@
                                                 <p className="text-sm font-bold text-slate-500 font-clock">{new Date(a.startTime).toLocaleTimeString('sv-SE', {hour:'2-digit',minute:'2-digit'})} - {formatDuration(a.duration)}</p>
                                             </div>
                                             <div className="flex items-center gap-1">
-    <motion.button 
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-        onClick={() => handleEdit(a)} 
-        className="text-blue-500 p-2 font-bold uppercase text-[10px] hover:bg-blue-50 rounded-lg transition-colors"
-    >
-        ✏️ Ändra
-    </motion.button>
-    <motion.button 
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-        onClick={() => deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'schedule_items', a.id))} 
-        className="text-red-400 p-2 font-bold uppercase text-[10px] hover:bg-red-50 rounded-lg transition-colors"
-    >
-        🗑️ Ta bort
-    </motion.button>
-</div>
+                                                <motion.button 
+                                                    whileHover={{ scale: 1.1 }}
+                                                    whileTap={{ scale: 0.9 }}
+                                                    onClick={() => handleEdit(a)} 
+                                                    className="text-blue-500 p-2 font-bold uppercase text-[10px] hover:bg-blue-50 rounded-lg transition-colors"
+                                                >
+                                                    ✏️ Ändra
+                                                </motion.button>
+                                                <motion.button 
+                                                    whileHover={{ scale: 1.1 }}
+                                                    whileTap={{ scale: 0.9 }}
+                                                    onClick={() => deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'schedule_items', a.id))} 
+                                                    className="text-red-400 p-2 font-bold uppercase text-[10px] hover:bg-red-50 rounded-lg transition-colors"
+                                                >
+                                                    🗑️ Ta bort
+                                                </motion.button>
+                                            </div>
                                         </div>
                                         <div className="flex gap-2">
                                             <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => handleShift(a, -15)} className="flex-1 p-2 bg-slate-100 rounded-lg font-black text-[10px] uppercase">-15 min</motion.button>
