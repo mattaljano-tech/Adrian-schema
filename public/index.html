@@ -1979,7 +1979,7 @@
                             >
                                 {/* Datum istället för hela kalendern */}
                                 <div className="text-slate-400 uppercase tracking-[0.3em] font-black mb-8 text-xl sm:text-2xl">
-                                    {["Söndag", "Måndag", "Tisdag", "Onsdag", "Torsdag", "Fredag", "Lördag"][currentTime.getDay()]} {currentTime.getDate()} {["Januari", "Februari", "Mars", "April", "Maj", "Juni", "Juli", "Augusti", "September", "Oktober", "November", "December"][currentTime.getMonth()]}
+                                    {dayStyles[(currentTime.getDay() === 0 ? 6 : currentTime.getDay() - 1)].full} {currentTime.getDate()} {monthThemes[currentTime.getMonth()].name}
                                 </div>
                                 
                                 {/* Klockor */}
