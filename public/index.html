@@ -1881,13 +1881,34 @@
                                     <div className="space-y-6 pt-8 border-t-[3px] border-dashed border-slate-300">
                                         <h3 className="text-slate-400 font-black uppercase tracking-widest px-4 text-xs sm:text-sm font-clock text-center">Det som händer sen...</h3>
                                         <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 pb-10 mask-image-bottom">
-                                            {future.map((a) => {
+                                            {future.map((a, index) => {
                                                 const isNextReal = a.id === nextRealTaskId;
                                                 const remToStart = getRem(a.startTime);
                                                 
+                                                // --- NYTT: Kolla om det är en ny dag för att lägga till avgränsare ---
+                                                const itemDate = new Date(a.startTime);
+                                                const todayStr = currentTime.toDateString();
+                                                const itemStr = itemDate.toDateString();
+                                                const prevStr = index > 0 ? new Date(future[index-1].startTime).toDateString() : todayStr;
+                                                
+                                                let dayDivider = null;
+                                                if (itemStr !== prevStr && itemStr !== todayStr) {
+                                                    const dayName = dayStyles[(itemDate.getDay() === 0 ? 6 : itemDate.getDay() - 1)].full;
+                                                    dayDivider = (
+                                                        <div key={`divider-${a.id}`} className="flex items-center gap-3 pt-6 pb-2">
+                                                            <div className="h-[2px] flex-1 bg-slate-300 rounded-full"></div>
+                                                            <span className="text-slate-500 font-black uppercase text-[10px] tracking-widest bg-slate-200 px-4 py-1.5 rounded-full border-2 border-white shadow-sm">
+                                                                Imorgon, {dayName}
+                                                            </span>
+                                                            <div className="h-[2px] flex-1 bg-slate-300 rounded-full"></div>
+                                                        </div>
+                                                    );
+                                                }
+
+                                                let content;
                                                 if (a.isGap) {
-                                                    return (
-                                                        <div key={a.id} className="p-4 sm:p-5 rounded-[2rem] flex items-center gap-4 sm:gap-6 bg-slate-100 border-2 border-dashed border-slate-300 opacity-70">
+                                                    content = (
+                                                        <div key={a.id} className="p-4 sm:p-5 rounded-[2rem] flex items-center gap-4 sm:gap-6 bg-slate-100 border-2 border-dashed border-slate-300">
                                                             <div className="flex flex-col items-center min-w-[70px] sm:min-w-[90px] border-r-2 pr-4 sm:pr-6 border-slate-300">
                                                                 <span className="text-lg sm:text-xl font-clock text-slate-500">{new Date(a.startTime).toLocaleTimeString('sv-SE', {hour:'2-digit',minute:'2-digit'})}</span>
                                                                 <span className="text-[8px] sm:text-[10px] font-black uppercase mt-1 font-clock text-slate-400">{formatDuration(a.duration)}</span>
@@ -1897,33 +1918,40 @@
                                                             </div>
                                                         </div>
                                                     );
+                                                } else {
+                                                    content = (
+                                                        <div key={a.id} className={`p-5 sm:p-6 rounded-[2.5rem] flex flex-col gap-4 transition-all ${isNextReal ? 'bg-orange-50 border-4 border-orange-300 shadow-md relative z-10' : a.isLiveEvent ? 'bg-blue-50 border-2 border-blue-300 shadow-sm' : 'bg-slate-50 border-2 border-slate-200'}`}>
+                                                            <div className="flex items-center gap-4 sm:gap-6">
+                                                                <div className={`flex flex-col items-center min-w-[70px] sm:min-w-[90px] border-r-2 pr-4 sm:pr-6 ${isNextReal ? 'border-orange-200' : 'border-slate-200'}`}>
+                                                                    <span className={`text-xl sm:text-2xl font-clock ${isNextReal ? 'text-orange-900' : 'text-slate-700'}`}>{new Date(a.startTime).toLocaleTimeString('sv-SE', {hour:'2-digit',minute:'2-digit'})}</span>
+                                                                    <span className={`text-[9px] sm:text-[10px] font-black uppercase mt-1 font-clock ${isNextReal ? 'text-orange-500' : 'text-slate-400'}`}>{formatDuration(a.duration)}</span>
+                                                                </div>
+                                                                <div className="flex-1">
+                                                                    <span className={`text-lg sm:text-xl font-black uppercase ${a.isLiveEvent ? 'text-blue-600' : isNextReal ? 'text-orange-900' : 'text-slate-600'}`}>{a.isLiveEvent ? "LIVE EVENT" : a.title}</span>
+                                                                </div>
+                                                            </div>
+                                                            
+                                                            {/* NEDRÄKNING FÖR NÄSTA UPPDRAG */}
+                                                            {isNextReal && !a.isLiveEvent && (
+                                                                <div className="bg-white rounded-2xl p-4 border-2 border-orange-200 flex items-center justify-between shadow-sm">
+                                                                    <span className="font-black uppercase text-orange-800 text-xs sm:text-sm tracking-widest">Börjar om:</span>
+                                                                    <div className="flex items-baseline gap-1 font-clock text-2xl sm:text-3xl text-orange-600">
+                                                                        {remToStart.h > 0 && <><span className="leading-none">{pad(remToStart.h)}</span><span className="text-orange-300 text-lg">:</span></>}
+                                                                        <span className="leading-none">{pad(remToStart.m)}</span>
+                                                                        <span className="text-orange-300 text-lg">:</span>
+                                                                        <span className="leading-none">{pad(remToStart.s)}</span>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    );
                                                 }
 
                                                 return (
-                                                    <div key={a.id} className={`p-5 sm:p-6 rounded-[2.5rem] flex flex-col gap-4 transition-all ${isNextReal ? 'bg-orange-50 border-4 border-orange-300 shadow-md relative z-10' : a.isLiveEvent ? 'bg-blue-50 border-2 border-blue-300 shadow-sm' : 'bg-slate-50 border-2 border-slate-200 opacity-80'}`}>
-                                                        <div className="flex items-center gap-4 sm:gap-6">
-                                                            <div className={`flex flex-col items-center min-w-[70px] sm:min-w-[90px] border-r-2 pr-4 sm:pr-6 ${isNextReal ? 'border-orange-200' : 'border-slate-200'}`}>
-                                                                <span className={`text-xl sm:text-2xl font-clock ${isNextReal ? 'text-orange-900' : 'text-slate-700'}`}>{new Date(a.startTime).toLocaleTimeString('sv-SE', {hour:'2-digit',minute:'2-digit'})}</span>
-                                                                <span className={`text-[9px] sm:text-[10px] font-black uppercase mt-1 font-clock ${isNextReal ? 'text-orange-500' : 'text-slate-400'}`}>{formatDuration(a.duration)}</span>
-                                                            </div>
-                                                            <div className="flex-1">
-                                                                <span className={`text-lg sm:text-xl font-black uppercase ${a.isLiveEvent ? 'text-blue-600' : isNextReal ? 'text-orange-900' : 'text-slate-600'}`}>{a.isLiveEvent ? "LIVE EVENT" : a.title}</span>
-                                                            </div>
-                                                        </div>
-                                                        
-                                                        {/* NEDRÄKNING FÖR NÄSTA UPPDRAG */}
-                                                        {isNextReal && !a.isLiveEvent && (
-                                                            <div className="bg-white rounded-2xl p-4 border-2 border-orange-200 flex items-center justify-between shadow-sm">
-                                                                <span className="font-black uppercase text-orange-800 text-xs sm:text-sm tracking-widest">Börjar om:</span>
-                                                                <div className="flex items-baseline gap-1 font-clock text-2xl sm:text-3xl text-orange-600">
-                                                                    {remToStart.h > 0 && <><span className="leading-none">{pad(remToStart.h)}</span><span className="text-orange-300 text-lg">:</span></>}
-                                                                    <span className="leading-none">{pad(remToStart.m)}</span>
-                                                                    <span className="text-orange-300 text-lg">:</span>
-                                                                    <span className="leading-none">{pad(remToStart.s)}</span>
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                    </div>
+                                                    <React.Fragment key={`frag-${a.id}`}>
+                                                        {dayDivider}
+                                                        {content}
+                                                    </React.Fragment>
                                                 );
                                             })}
                                         </div>
