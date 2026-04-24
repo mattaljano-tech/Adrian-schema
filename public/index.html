@@ -2156,6 +2156,11 @@ const handleSaveBedtime = async () => {
 
         // --- MAIN APP ---
         function App() {
+            // --- NYTT: Globalt applås ---
+            const [isAppUnlocked, setIsAppUnlocked] = useState(() => localStorage.getItem('adrian_global_lock') === 'true');
+            const [globalPass, setGlobalPass] = useState('');
+            const APP_PASSWORD = "sevil"; // <-- Här är lösenordet!
+
             const [user, setUser] = useState(null);
             const [role, setRole] = useState(() => localStorage.getItem('adrian_app_role') || 'child');
             const [activities, setActivities] = useState([]);
@@ -2394,6 +2399,49 @@ const handleSaveBedtime = async () => {
                 if (absMins >= 60) return { text: `${Math.floor(absMins / 60)}h ${absMins % 60}m kvar`, isLate: false };
                 return { text: `${absMins} min kvar`, isLate: false };
             })(currentTime.getTime());
+
+            // --- LÅSSKÄRMEN ---
+            if (!isAppUnlocked) {
+                return (
+                    <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4 antialiased">
+                        <div className="bg-white p-8 rounded-[2.5rem] shadow-2xl max-w-sm w-full text-center border-4 border-slate-200">
+                            <div className="text-6xl mb-4 animate-bounce">🔐</div>
+                            <h1 className="text-2xl font-black uppercase text-slate-800 mb-2 tracking-widest">Privat App</h1>
+                            <p className="text-slate-500 font-bold text-sm mb-6">Ange lösenord för att få åtkomst till schemat.</p>
+                            
+                            <input 
+                                type="password" 
+                                placeholder="Lösenord..."
+                                value={globalPass}
+                                onChange={(e) => setGlobalPass(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && globalPass.toLowerCase() === APP_PASSWORD) {
+                                        localStorage.setItem('adrian_global_lock', 'true');
+                                        setIsAppUnlocked(true);
+                                    }
+                                }}
+                                className="w-full p-4 bg-slate-100 border-2 border-slate-300 rounded-2xl mb-4 font-bold text-center text-xl outline-none focus:border-blue-500 transition-colors"
+                            />
+                            
+                            <button 
+                                onClick={() => {
+                                    if (globalPass.toLowerCase() === APP_PASSWORD) {
+                                        localStorage.setItem('adrian_global_lock', 'true');
+                                        setIsAppUnlocked(true);
+                                    } else {
+                                        alert('Fel lösenord!');
+                                        setGlobalPass('');
+                                    }
+                                }}
+                                className="w-full bg-blue-600 text-white font-black uppercase tracking-widest py-4 rounded-2xl shadow-lg hover:bg-blue-500 transition-colors border-b-4 border-blue-800 active:border-b-0 active:translate-y-1"
+                            >
+                                Släpp in mig
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+            // --- SLUT PÅ LÅSSKÄRMEN ---
 
             return (
     <div className="min-h-screen bg-slate-100">
