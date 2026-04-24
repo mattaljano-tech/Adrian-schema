@@ -1382,15 +1382,25 @@
                 await updateDoc(docRef, { startTime: activity.startTime + shiftMs, endTime: activity.endTime + shiftMs });
             };
 
-            const handleSaveSettings = async () => {
-                try {
-                    const bankDoc = doc(db, 'artifacts', appId, 'public', 'data', 'bank', 'adrian');
-                    await updateDoc(bankDoc, { adminName: localAdminName, dailyMessage: localDailyMessage, bedtime: localBedtime });
-                    alert("Inställningar sparade! Adrian kan nu se detta på sin skärm.");
-                } catch (err) {
-                    console.error("Fel vid sparande av inställningar", err);
-                }
-            };
+            const handleSaveMessage = async () => {
+    try {
+        const bankDoc = doc(db, 'artifacts', appId, 'public', 'data', 'bank', 'adrian');
+        await updateDoc(bankDoc, { adminName: localAdminName, dailyMessage: localDailyMessage });
+        alert("Meddelande sparat!");
+    } catch (err) {
+        console.error("Fel vid sparande av meddelande", err);
+    }
+};
+
+const handleSaveBedtime = async () => {
+    try {
+        const bankDoc = doc(db, 'artifacts', appId, 'public', 'data', 'bank', 'adrian');
+        await updateDoc(bankDoc, { bedtime: localBedtime });
+        alert("Läggdags sparad!");
+    } catch (err) {
+        console.error("Fel vid sparande av läggdags", err);
+    }
+};
 
             const grouped = activities.reduce((acc, a) => {
                 const dateKey = new Date(a.startTime).toISOString().split('T')[0];
@@ -1414,15 +1424,16 @@
                         </motion.button>
                     </div>
 
+                    {/* --- DAGENS MEDDELANDE (ADMIN) --- */}
                     <div className="bg-yellow-50 border-4 border-yellow-300 p-6 rounded-3xl shadow-md">
                         <h2 className="font-black text-yellow-800 uppercase tracking-widest mb-4 flex items-center gap-2">
                             💬 Dagens Meddelande & Förebild
                         </h2>
-                        <p className="text-sm text-yellow-700 font-bold mb-4">Skriv in ditt namn och vad du vill säga till Adrian idag. Han kan klicka på meddelandet för att få det uppläst.</p>
+                        <p className="text-sm text-yellow-700 font-bold mb-4">Skriv in ditt namn och vad du vill säga till Adrian idag.</p>
                         
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-xs font-black uppercase text-yellow-800 mb-1">Ditt Namn (Du som förebild)</label>
+                                <label className="block text-xs font-black uppercase text-yellow-800 mb-1">Ditt Namn (Förebild)</label>
                                 <input 
                                     type="text" 
                                     value={localAdminName} 
@@ -1432,18 +1443,19 @@
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-black uppercase text-yellow-800 mb-1">Tid för läggdags</label>
-                                <input 
-                                    type="time" 
-                                    value={localBedtime} 
-                                    onChange={e => setLocalBedtime(e.target.value)}
-                                    className="w-full p-3 bg-white border-2 border-yellow-200 rounded-xl font-bold font-clock"
-                                />
+                                <label className="block text-xs font-black uppercase text-yellow-800 mb-1">Meddelande till Adrian</label>
+                                <textarea 
+                                    value={localDailyMessage} 
+                                    onChange={e => setLocalDailyMessage(e.target.value)}
+                                    placeholder="Skriv något peppande här..."
+                                    className="w-full p-3 bg-white border-2 border-yellow-200 rounded-xl font-bold min-h-[80px]"
+                                ></textarea>
                             </div>
+                            
                             <motion.button 
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.95 }}
-                                onClick={handleSaveSettings} 
+                                onClick={handleSaveMessage} 
                                 className="w-full p-3 bg-yellow-400 text-yellow-900 rounded-xl font-black uppercase text-sm shadow-sm hover:bg-yellow-500 border-2 border-yellow-500 transition-colors"
                             >
                                 Spara Meddelande
@@ -1451,35 +1463,34 @@
                         </div>
                     </div>
 
-                    {messages && messages.length > 0 && (
-                        <div className="bg-orange-50 border-4 border-orange-300 p-6 rounded-3xl shadow-md">
-                            <h2 className="font-black text-orange-800 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                📬 Meddelanden från Adrian
-                            </h2>
-                            <div className="space-y-3">
-                                {messages.map(m => (
-                                    <div key={m.id} className="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border-2 border-orange-100">
-                                        <div className="flex items-center gap-3">
-                                            <span className="text-3xl">{m.icon}</span>
-                                            <div>
-                                                <p className="font-black text-slate-800 uppercase text-sm sm:text-base">{m.text}</p>
-                                                <p className="text-xs font-bold text-slate-400 font-clock">{new Date(m.time).toLocaleTimeString('sv-SE', {hour: '2-digit', minute: '2-digit'})}</p>
-                                            </div>
-                                        </div>
-                                        <motion.button 
-                                            whileHover={{ scale: 1.1 }}
-                                            whileTap={{ scale: 0.9 }}
-                                            onClick={() => deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'messages', m.id))} 
-                                            className="text-slate-400 hover:text-red-500 font-bold uppercase text-[10px] p-2 bg-slate-100 rounded-lg transition-colors"
-                                        >
-                                            Klar
-                                        </motion.button>
-                                    </div>
-                                ))}
+                    {/* --- LÄGGDAGS (ADMIN) --- */}
+                    <div className="bg-indigo-50 border-4 border-indigo-300 p-6 rounded-3xl shadow-md">
+                        <h2 className="font-black text-indigo-800 uppercase tracking-widest mb-4 flex items-center gap-2">
+                            🌙 Inställning för Läggdags
+                        </h2>
+                        <p className="text-sm text-indigo-700 font-bold mb-4">Ställ in vilken tid Adrian ska gå och lägga sig. Detta visas på hans schema.</p>
+                        
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-xs font-black uppercase text-indigo-800 mb-1">Tid för läggdags</label>
+                                <input 
+                                    type="time" 
+                                    value={localBedtime} 
+                                    onChange={e => setLocalBedtime(e.target.value)}
+                                    className="w-full p-3 bg-white border-2 border-indigo-200 rounded-xl font-bold font-clock text-indigo-900"
+                                />
                             </div>
+                            <motion.button 
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={handleSaveBedtime} 
+                                className="w-full p-3 bg-indigo-500 text-white rounded-xl font-black uppercase text-sm shadow-sm hover:bg-indigo-600 transition-colors"
+                            >
+                                Spara Läggdags
+                            </motion.button>
                         </div>
-                    )}
-
+                    </div>
+                    
                     <div className="bg-slate-800 border-4 border-slate-700 p-6 sm:p-8 rounded-3xl shadow-xl text-white">
                         <h2 className="font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">💳 Adrians Virtuella Bank</h2>
                         <div className="text-6xl font-clock font-black mb-6">{bankBalance} <span className="text-2xl text-slate-400">kr</span></div>
