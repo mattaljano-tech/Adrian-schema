@@ -595,6 +595,8 @@
             const [readTime, setReadTime] = useState(0);
             const [isReading, setIsReading] = useState(false);
             const levelUpAudioRef = useRef(null);
+            const mindfulnessAudioRef = useRef(null);
+            const [isMindfulnessPlaying, setIsMindfulnessPlaying] = useState(false);
             // NYTT: Låtlista för Mindfulness
             const mindfulnessSongs = [
                 { id: 'm1', title: 'Avslappning i Rymden', url: 'https://din-länk-till-låt-1.mp3' },
@@ -1122,9 +1124,11 @@
                             <div className="flex items-center gap-4 mb-6">
                                 <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-4xl shadow-md bg-white">🎧</div>
                                 <div>
-                                    {/* Uppdaterade textfärger till vit/ljusgrå för bättre kontrast mot mörka filtret */}
-                                    <h4 className="text-2xl font-black text-white uppercase tracking-wide drop-shadow-md">Mindfulness</h4>
-                                    <p className="text-indigo-100 font-bold text-sm drop-shadow-md">Slappna av till sköna låtar.</p>
+                                    <h4 className="text-2xl font-black text-white uppercase tracking-wide drop-shadow-md flex items-center gap-3">
+                                        Mindfulness
+                                        <span className="bg-emerald-500 text-white text-xs sm:text-sm px-3 py-1 rounded-full border-2 border-emerald-400 shadow-sm shadow-emerald-900/50">+5 kr</span>
+                                    </h4>
+                                    <p className="text-indigo-100 font-bold text-sm drop-shadow-md mt-1">Lyssna klart på hela låten för att få belöningen.</p>
                                 </div>
                             </div>
 
@@ -1142,13 +1146,33 @@
                             </div>
 
                             <div className="bg-white/95 p-4 rounded-2xl shadow-sm border-2 border-indigo-100 backdrop-blur-sm">
+                                {/* Dold ljudspelare (ingen kan spola!) */}
                                 <audio 
-                                    controls 
+                                    ref={mindfulnessAudioRef}
                                     src={selectedSong} 
-                                    className="w-full"
-                                    style={{ filter: 'contrast(1.2) sepia(1) hue-rotate(200deg) saturate(3)' }} 
-                                    onEnded={(e) => handleClaim(5, e, null, "Lyssna på Mindfulness")}
+                                    onEnded={(e) => {
+                                        setIsMindfulnessPlaying(false);
+                                        handleClaim(5, e, null, "Lyssna på Mindfulness");
+                                    }}
+                                    onPlay={() => setIsMindfulnessPlaying(true)}
+                                    onPause={() => setIsMindfulnessPlaying(false)}
                                 ></audio>
+                                
+                                {/* Vår låsta Play/Paus-knapp */}
+                                <motion.button 
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={() => {
+                                        if (isMindfulnessPlaying) {
+                                            mindfulnessAudioRef.current.pause();
+                                        } else {
+                                            mindfulnessAudioRef.current.play();
+                                        }
+                                    }}
+                                    className={`w-full py-4 rounded-xl font-black uppercase tracking-widest shadow-md transition-colors border-2 flex justify-center items-center gap-3 ${isMindfulnessPlaying ? 'bg-indigo-100 text-indigo-700 border-indigo-300' : 'bg-indigo-600 text-white border-indigo-700 hover:bg-indigo-500'}`}
+                                >
+                                    {isMindfulnessPlaying ? '⏸ Pausa Låten' : '▶ Starta Låten'}
+                                </motion.button>
                             </div>
                         </div>
                     </div>
