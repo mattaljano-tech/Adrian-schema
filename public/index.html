@@ -1305,7 +1305,7 @@
     // ------------------------------
 
     // --- PARENT UI (MED INKORG OCH NYA INSTÄLLNINGAR) ---
-    function ParentUI({ activities, bankBalance, addMoney, setBankZero, adminName, setAdminName, dailyMessage, setDailyMessage, db, appId, user, onLogout, messages }) {
+    function ParentUI({ activities, bankBalance, addMoney, setBankZero, adminName, setAdminName, dailyMessage, setDailyMessage, bedtime, db, appId, user, onLogout, messages }) {
         const [showAddForm, setShowAddForm] = useState(false);
             const [editingId, setEditingId] = useState(null);
             const [newTitle, setNewTitle] = useState('');
@@ -1318,6 +1318,7 @@
             
             const [localAdminName, setLocalAdminName] = useState(adminName);
             const [localDailyMessage, setLocalDailyMessage] = useState(dailyMessage);
+            const [localBedtime, setLocalBedtime] = useState(bedtime || '22:00');
             
             const handleEdit = (activity) => {
                 setEditingId(activity.id);
@@ -1384,7 +1385,7 @@
             const handleSaveSettings = async () => {
                 try {
                     const bankDoc = doc(db, 'artifacts', appId, 'public', 'data', 'bank', 'adrian');
-                    await updateDoc(bankDoc, { adminName: localAdminName, dailyMessage: localDailyMessage });
+                    await updateDoc(bankDoc, { adminName: localAdminName, dailyMessage: localDailyMessage, bedtime: localBedtime });
                     alert("Inställningar sparade! Adrian kan nu se detta på sin skärm.");
                 } catch (err) {
                     console.error("Fel vid sparande av inställningar", err);
@@ -1431,13 +1432,12 @@
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-black uppercase text-yellow-800 mb-1">Dagens ord / meddelande till Adrian</label>
+                                <label className="block text-xs font-black uppercase text-yellow-800 mb-1">Tid för läggdags</label>
                                 <input 
-                                    type="text" 
-                                    value={localDailyMessage} 
-                                    onChange={e => setLocalDailyMessage(e.target.value)}
-                                    placeholder="T.ex. Jag är stolt över dig! eller Dagens ord: Fantastisk"
-                                    className="w-full p-3 bg-white border-2 border-yellow-200 rounded-xl font-bold"
+                                    type="time" 
+                                    value={localBedtime} 
+                                    onChange={e => setLocalBedtime(e.target.value)}
+                                    className="w-full p-3 bg-white border-2 border-yellow-200 rounded-xl font-bold font-clock"
                                 />
                             </div>
                             <motion.button 
@@ -1609,7 +1609,7 @@
         }
 
         // --- CHILD UI (WITH TABS) ---
-        function ChildUI({ activities, currentTime, bankBalance, bankStreak, claimedQuests, addMoney, sendMessage, adminName, dailyMessage, db, appId, onLogout, changeRole, notifsEnabled, enableNotifs, bedtimeInfo }) {
+        function ChildUI({ activities, currentTime, bankBalance, bankStreak, claimedQuests, addMoney, sendMessage, adminName, dailyMessage, bedtime, db, appId, onLogout, changeRole, notifsEnabled, enableNotifs, bedtimeInfo }) {
             const [activeTab, setActiveTab] = useState('schema');
             const [isIdle, setIsIdle] = useState(false);
 
@@ -1864,7 +1864,7 @@
                                     </motion.button>
                                 </div>
                                 <div className="flex items-center gap-3 bg-white px-6 py-3 rounded-full border-2 border-slate-200 shadow-sm font-clock">
-                                    <span className="text-slate-500 text-sm font-bold uppercase tracking-widest font-mono">Läggdags 22:00</span>
+                                    <span className="text-slate-500 text-sm font-bold uppercase tracking-widest font-mono">Läggdags {bedtime || '22:00'}</span>
                                     <div className="w-1 h-6 bg-slate-200 rounded-full"></div>
                                     <span className={`text-lg font-clock uppercase tracking-wider ${bedtimeInfo?.isLate ? 'text-red-600' : 'text-blue-600'}`}>{bedtimeInfo?.text}</span>
                                 </div>
@@ -2087,6 +2087,7 @@
             // NYA STATEN FÖR NAMN OCH MEDDELANDE
             const [adminName, setAdminName] = useState('Din Förebild');
             const [dailyMessage, setDailyMessage] = useState('');
+            const [bedtime, setBedtime] = useState('22:00');
 
             const [currentTime, setCurrentTime] = useState(new Date());
             const [notifsEnabled, setNotifsEnabled] = useState(
@@ -2146,6 +2147,7 @@
                         setClaimedQuests(data.claimedQuests || {});
                         setAdminName(data.adminName || 'Din kompis');
                         setDailyMessage(data.dailyMessage || '');
+                        setBedtime(data.bedtime || '22:00');
                     } else {
                         setDoc(bankDoc, { balance: 0, streak: 0, lastActive: '', claimedQuests: {}, adminName: 'Din Förebild', dailyMessage: '' }).catch(console.error);
                     }
@@ -2278,10 +2280,11 @@
 
             const bedtimeInfo = ((currentMs) => {
                 const now = new Date(currentMs);
-                const bedtime = new Date(currentMs);
-                if (now.getHours() < 6) bedtime.setDate(bedtime.getDate() - 1);
-                bedtime.setHours(22, 0, 0, 0);
-                const diffMins = Math.floor((currentMs - bedtime.getTime()) / 60000);
+                const bedTimeDate = new Date(currentMs);
+                const [bedH, bedM] = bedtime.split(':').map(Number);
+                if (now.getHours() < 6) bedTimeDate.setDate(bedTimeDate.getDate() - 1);
+                bedTimeDate.setHours(bedH, bedM, 0, 0);
+                const diffMins = Math.floor((currentMs - bedTimeDate.getTime()) / 60000);
                 if (diffMins >= 0) return { text: `+${diffMins} min`, isLate: true };
                 const absMins = Math.abs(diffMins);
                 if (absMins >= 60) return { text: `${Math.floor(absMins / 60)}h ${absMins % 60}m kvar`, isLate: false };
