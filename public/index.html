@@ -518,44 +518,103 @@
             );
         };
 
-        // --- MINNESREGLER (RAMSOR) ---
+        // --- PEDAGOGISKA MINNESREGLER ---
         const LearnRhymes = () => {
             return (
                 <div className="space-y-6 mt-12">
-                   <h3 className="text-slate-400 font-black uppercase tracking-widest px-4 text-sm font-clock text-center mb-6">Smarta Minnesregler</h3>
+                   <h3 className="text-slate-400 font-black uppercase tracking-widest px-4 text-sm font-clock text-center mb-6">Lär dig: Dagar, Månader & Klockan</h3>
 
-                   <div className="bg-white p-6 sm:p-8 rounded-[2.5rem] border-4 border-emerald-200 shadow-xl relative">
-                       <h4 className="text-2xl font-black text-slate-800 uppercase mb-4 flex items-center gap-3"><span className="text-4xl">👊</span> Knog-tricket (Månader)</h4>
-                       <div className="bg-emerald-50 p-4 rounded-2xl border-2 border-emerald-100 shadow-inner text-slate-700 font-bold space-y-3">
-                           <p className="text-sm sm:text-base">Glöm tråkiga ramsor! Gör händerna till knytnävar och räkna på dina knogar (börja från vänster):</p>
-                           <ul className="space-y-3 text-sm sm:text-base mt-2">
-                               <li className="flex items-center gap-2">⛰️ <strong className="text-emerald-700">Knoge (Toppen)</strong> = Lång månad (31 dagar)</li>
-                               <li className="flex items-center gap-2">🕳️ <strong className="text-emerald-700">Dal (Gropen)</strong> = Kort månad (30 dagar)</li>
-                           </ul>
-                           <p className="italic text-emerald-600 mt-3 text-xs border-t-2 border-emerald-200 pt-2">PS. Februari (första gropen) är alltid ett undantag och har bara 28 eller 29 dagar!</p>
+                   {/* 1. VECKODAGARNA (Enligt svensk skolstandard) */}
+                   <div className="bg-white p-6 sm:p-8 rounded-[2.5rem] border-4 border-slate-200 shadow-xl relative">
+                       <h4 className="text-2xl font-black text-slate-800 uppercase mb-6 flex items-center gap-3"><span className="text-4xl">📅</span> Veckans Färger</h4>
+                       <p className="text-slate-500 font-bold text-sm mb-4">Varje dag har sin egen färg och känsla. Lär dig färgerna så vet du alltid var i veckan du är!</p>
+                       
+                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                           <div className="bg-[#4CAF50] text-white p-4 rounded-2xl shadow-sm flex items-center gap-4 border-b-4 border-[#388E3C]">
+                               <span className="text-3xl bg-white/20 p-2 rounded-xl">🌱</span>
+                               <div><strong className="block text-lg uppercase tracking-wider">Måndag (Grön)</strong><span className="text-xs sm:text-sm font-bold opacity-90">Grön som gräset. Vi startar en ny vecka!</span></div>
+                           </div>
+                           <div className="bg-[#2196F3] text-white p-4 rounded-2xl shadow-sm flex items-center gap-4 border-b-4 border-[#1976D2]">
+                               <span className="text-3xl bg-white/20 p-2 rounded-xl">💧</span>
+                               <div><strong className="block text-lg uppercase tracking-wider">Tisdag (Blå)</strong><span className="text-xs sm:text-sm font-bold opacity-90">Blå som vattnet. Vi flyter på framåt.</span></div>
+                           </div>
+                           <div className="bg-slate-400 text-white p-4 rounded-2xl shadow-sm flex items-center gap-4 border-b-4 border-slate-500">
+                               <span className="text-3xl bg-white/20 p-2 rounded-xl">☁️</span>
+                               <div><strong className="block text-lg uppercase tracking-wider">Onsdag (Vit/Grå)</strong><span className="text-xs sm:text-sm font-bold opacity-90">Mitt i veckan ("Lill-lördag"). Halvvägs!</span></div>
+                           </div>
+                           <div className="bg-[#8D6E63] text-white p-4 rounded-2xl shadow-sm flex items-center gap-4 border-b-4 border-[#5D4037]">
+                               <span className="text-3xl bg-white/20 p-2 rounded-xl">🪵</span>
+                               <div><strong className="block text-lg uppercase tracking-wider">Torsdag (Brun)</strong><span className="text-xs sm:text-sm font-bold opacity-90">Brun som ett träd. Starka och snart framme.</span></div>
+                           </div>
+                           <div className="bg-[#FFEB3B] text-yellow-900 p-4 rounded-2xl shadow-sm flex items-center gap-4 border-b-4 border-[#FBC02D]">
+                               <span className="text-3xl bg-yellow-900/10 p-2 rounded-xl">☀️</span>
+                               <div><strong className="block text-lg uppercase tracking-wider">Fredag (Gul)</strong><span className="text-xs sm:text-sm font-bold opacity-90">Gul som solen. Skolan är slut, dags för fredagsmys!</span></div>
+                           </div>
+                           <div className="bg-[#E91E63] text-white p-4 rounded-2xl shadow-sm flex items-center gap-4 border-b-4 border-[#C2185B]">
+                               <span className="text-3xl bg-white/20 p-2 rounded-xl">🍬</span>
+                               <div><strong className="block text-lg uppercase tracking-wider">Lördag (Rosa)</strong><span className="text-xs sm:text-sm font-bold opacity-90">Rosa som lördagsgodis. Helt ledigt och roligt!</span></div>
+                           </div>
+                           <div className="bg-[#F44336] text-white p-4 rounded-2xl shadow-sm flex items-center gap-4 sm:col-span-2 border-b-4 border-[#D32F2F]">
+                               <span className="text-3xl bg-white/20 p-2 rounded-xl">🛑</span>
+                               <div><strong className="block text-lg uppercase tracking-wider">Söndag (Röd)</strong><span className="text-xs sm:text-sm font-bold opacity-90">Röd som ett stopptecken. Stanna upp, vila och ladda om.</span></div>
+                           </div>
                        </div>
                    </div>
 
-                   <div className="bg-white p-6 sm:p-8 rounded-[2.5rem] border-4 border-blue-200 shadow-xl relative">
-                       <h4 className="text-2xl font-black text-slate-800 uppercase mb-4 flex items-center gap-3"><span className="text-4xl">⏱️</span> Klockan</h4>
-                       <ul className="space-y-3 bg-blue-50 p-4 rounded-2xl border-2 border-blue-100 text-slate-700 font-bold shadow-inner text-sm sm:text-base">
-                           <li className="flex items-center gap-2">⬆️ Stor visare rakt <strong className="text-blue-600">UPP</strong> = HEL timme</li>
-                           <li className="flex items-center gap-2">⬇️ Stor visare rakt <strong className="text-blue-600">NER</strong> = HALV timme</li>
-                           <li className="flex items-center gap-2">➡️ Stor visare till <strong className="text-blue-600">HÖGER</strong> = KVART ÖVER</li>
-                           <li className="flex items-center gap-2">⬅️ Stor visare till <strong className="text-blue-600">VÄNSTER</strong> = KVART I</li>
-                       </ul>
+                   {/* 2. MÅNADERNA (Knogtricket) */}
+                   <div className="bg-white p-6 sm:p-8 rounded-[2.5rem] border-4 border-emerald-200 shadow-xl relative">
+                       <h4 className="text-2xl font-black text-slate-800 uppercase mb-4 flex items-center gap-3"><span className="text-4xl">👊</span> Knog-tricket (Månader)</h4>
+                       
+                       <p className="text-slate-600 font-bold mb-6 text-sm sm:text-base">Gör båda händerna till knytnävar och lägg dem bredvid varandra. Räkna på knogarna och dalarna från vänster till höger!</p>
+                       
+                       <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                           <div className="flex-1 bg-emerald-50 p-5 rounded-3xl border-2 border-emerald-100 flex flex-col items-center text-center gap-2 shadow-sm">
+                               <span className="text-5xl">⛰️</span>
+                               <strong className="block text-emerald-800 text-xl uppercase mt-2">Uppe på knogen</strong>
+                               <div className="bg-emerald-200 text-emerald-800 font-black px-4 py-1 rounded-full text-sm">31 Dagar (Lång månad)</div>
+                               <p className="text-xs text-emerald-700 font-bold mt-2">Januari, Mars, Maj, Juli, Augusti, Oktober, December.</p>
+                           </div>
+                           
+                           <div className="flex-1 bg-sky-50 p-5 rounded-3xl border-2 border-sky-100 flex flex-col items-center text-center gap-2 shadow-sm">
+                               <span className="text-5xl">🕳️</span>
+                               <strong className="block text-sky-800 text-xl uppercase mt-2">Nere i dalen</strong>
+                               <div className="bg-sky-200 text-sky-800 font-black px-4 py-1 rounded-full text-sm">30 Dagar (Kort månad)</div>
+                               <p className="text-xs text-sky-700 font-bold mt-2">April, Juni, September, November. <br/><span className="text-sky-900">(Och lilla Februari med 28!)</span></p>
+                           </div>
+                       </div>
+                       
+                       <div className="bg-yellow-50 p-4 rounded-xl text-center border-2 border-yellow-200">
+                           <span className="text-xs font-black text-yellow-800 uppercase tracking-widest">💡 Bra att veta:</span>
+                           <p className="text-yellow-900 text-sm font-bold mt-1">När du når sista knogen på vänster hand (Juli) hoppar du till första knogen på höger hand (Augusti). Båda är knogar, så båda har 31 dagar!</p>
+                       </div>
                    </div>
 
-                   <div className="bg-white p-6 sm:p-8 rounded-[2.5rem] border-4 border-purple-200 shadow-xl relative">
-                       <h4 className="text-2xl font-black text-slate-800 uppercase mb-4 flex items-center gap-3"><span className="text-4xl">🎮</span> Veckans Levling</h4>
-                       <div className="bg-purple-50 p-4 sm:p-5 rounded-2xl border-2 border-purple-100 font-bold space-y-4 text-sm sm:text-base shadow-inner">
-                           <div className="flex items-center gap-3 text-[#4CAF50]"><span className="text-2xl bg-white p-2 rounded-xl shadow-sm">🚀</span> <span><strong>Måndag:</strong> Ny vecka, vi startar på Level 1!</span></div>
-                           <div className="flex items-center gap-3 text-[#2196F3]"><span className="text-2xl bg-white p-2 rounded-xl shadow-sm">🧠</span> <span><strong>Tisdag:</strong> Träna hjärnan, samla in XP.</span></div>
-                           <div className="flex items-center gap-3 text-slate-500"><span className="text-2xl bg-white p-2 rounded-xl shadow-sm">🐪</span> <span><strong>Onsdag:</strong> Lill-lördag! Halvvägs genom mappen.</span></div>
-                           <div className="flex items-center gap-3 text-[#8D6E63]"><span className="text-2xl bg-white p-2 rounded-xl shadow-sm">⚡</span> <span><strong>Torsdag:</strong> Snart bossfight, aktivera boosten!</span></div>
-                           <div className="flex items-center gap-3 text-[#D4C42C]"><span className="text-2xl bg-white p-2 rounded-xl shadow-sm">🌮</span> <span><strong>Fredag:</strong> GG (Good Game)! Uppdraget slutfört, dags för mys.</span></div>
-                           <div className="flex items-center gap-3 text-[#E91E63]"><span className="text-2xl bg-white p-2 rounded-xl shadow-sm">💎</span> <span><strong>Lördag:</strong> Fri lek, gaming och loot (godis)!</span></div>
-                           <div className="flex items-center gap-3 text-[#F44336]"><span className="text-2xl bg-white p-2 rounded-xl shadow-sm">🔋</span> <span><strong>Söndag:</strong> AFK (Away From Keyboard). Ladda batteriet till 100%.</span></div>
+                   {/* 3. KLOCKAN */}
+                   <div className="bg-white p-6 sm:p-8 rounded-[2.5rem] border-4 border-blue-200 shadow-xl relative">
+                       <h4 className="text-2xl font-black text-slate-800 uppercase mb-6 flex items-center gap-3"><span className="text-4xl">⏱️</span> Lär dig Klockan</h4>
+                       <p className="text-slate-500 font-bold text-sm mb-4">Kolla alltid på den <strong>LÅNGA</strong> visaren för att veta hur mycket klockan är.</p>
+                       
+                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+                           <div className="bg-blue-50 p-4 rounded-2xl border-2 border-blue-100 flex flex-col items-center justify-center shadow-sm">
+                               <span className="text-4xl mb-3 animate-bounce">⬆️</span>
+                               <span className="font-black text-blue-900 uppercase text-sm mb-1">Hel Timme</span>
+                               <span className="text-[10px] sm:text-xs text-blue-600 font-bold">Långa visaren pekar rakt UPP</span>
+                           </div>
+                           <div className="bg-blue-50 p-4 rounded-2xl border-2 border-blue-100 flex flex-col items-center justify-center shadow-sm">
+                               <span className="text-4xl mb-3 hover:translate-x-2 transition-transform">➡️</span>
+                               <span className="font-black text-blue-900 uppercase text-sm mb-1">Kvart Över</span>
+                               <span className="text-[10px] sm:text-xs text-blue-600 font-bold">Långa visaren pekar HÖGER</span>
+                           </div>
+                           <div className="bg-blue-50 p-4 rounded-2xl border-2 border-blue-100 flex flex-col items-center justify-center shadow-sm">
+                               <span className="text-4xl mb-3">⬇️</span>
+                               <span className="font-black text-blue-900 uppercase text-sm mb-1">Halv</span>
+                               <span className="text-[10px] sm:text-xs text-blue-600 font-bold">Långa visaren pekar rakt NER</span>
+                           </div>
+                           <div className="bg-blue-50 p-4 rounded-2xl border-2 border-blue-100 flex flex-col items-center justify-center shadow-sm">
+                               <span className="text-4xl mb-3 hover:-translate-x-2 transition-transform">⬅️</span>
+                               <span className="font-black text-blue-900 uppercase text-sm mb-1">Kvart I</span>
+                               <span className="text-[10px] sm:text-xs text-blue-600 font-bold">Långa visaren pekar VÄNSTER</span>
+                           </div>
                        </div>
                    </div>
                 </div>
