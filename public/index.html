@@ -673,7 +673,7 @@
             const [isMindfulnessPlaying, setIsMindfulnessPlaying] = useState(false);
             // NYTT: Låtlista för Mindfulness
             const mindfulnessSongs = [
-                { id: 'm1', title: 'Avslappning i Rymden', url: 'https://din-länk-till-låt-1.mp3' },
+                { id: 'm1', title: 'Avslappning i Rymden', url: 'Avslappning i rymden.mp3' },
                 { id: 'm2', title: 'Lugna Skogen', url: 'https://din-länk-till-låt-2.mp3' },
                 { id: 'm3', title: 'Gaming Chill Lofi', url: 'https://din-länk-till-låt-3.mp3' }
             ];
@@ -1954,25 +1954,25 @@ const handleSaveBedtime = async () => {
                             <div id="schedule-section" className="space-y-12">
                                 {/* AKTIVT UPPDRAG ELLER FRITID */}
                                 {current && !current.isGap ? (
-                                    <div className="bg-white rounded-[3rem] p-10 border-8 border-blue-200 shadow-2xl flex flex-col items-center transform scale-105 relative z-20">
-                                        <div className="absolute -top-5 bg-blue-600 text-white px-8 py-2 rounded-full font-black uppercase text-sm tracking-widest border-4 border-white font-clock shadow-md">Nuvarande Uppdrag</div>
-                                        <h2 className="text-5xl font-black text-slate-900 mb-8 mt-4 uppercase text-center leading-tight">{current.title}</h2>
-                                        <div className="w-full bg-slate-50 p-8 rounded-[2.5rem] border-2 border-slate-200 flex flex-col items-center shadow-inner">
-                                            <div className="text-slate-400 font-black uppercase text-xs mb-4">Tid kvar av uppdraget</div>
-                                            <div className="flex items-baseline gap-2 font-clock text-7xl sm:text-8xl">
-                                                {getRem(current.endTime).h > 0 && <><span className="text-slate-800 leading-none">{pad(getRem(current.endTime).h)}</span><span className="text-slate-200 text-4xl">:</span></>}
+                                    <div className="bg-white rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-10 border-4 sm:border-8 border-blue-200 shadow-2xl flex flex-col items-center transform sm:scale-105 relative z-20 w-full overflow-hidden">
+                                        <div className="absolute -top-4 sm:-top-5 bg-blue-600 text-white px-6 sm:px-8 py-1 sm:py-2 rounded-full font-black uppercase text-[10px] sm:text-sm tracking-widest border-4 border-white font-clock shadow-md">Nuvarande Uppdrag</div>
+                                        <h2 className="text-3xl sm:text-5xl font-black text-slate-900 mb-6 sm:mb-8 mt-4 uppercase text-center leading-tight break-words w-full">{current.title}</h2>
+                                        <div className="w-full bg-slate-50 p-5 sm:p-8 rounded-[1.5rem] sm:rounded-[2.5rem] border-2 border-slate-200 flex flex-col items-center shadow-inner">
+                                            <div className="text-slate-400 font-black uppercase text-[10px] sm:text-xs mb-2 sm:mb-4 text-center">Tid kvar av uppdraget</div>
+                                            <div className="flex items-baseline justify-center gap-1 sm:gap-2 font-clock text-5xl sm:text-7xl md:text-8xl w-full">
+                                                {getRem(current.endTime).h > 0 && <><span className="text-slate-800 leading-none">{pad(getRem(current.endTime).h)}</span><span className="text-slate-200 text-3xl sm:text-4xl">:</span></>}
                                                 <span className="text-slate-800 leading-none">{pad(getRem(current.endTime).m)}</span>
-                                                <span className="text-slate-200 text-4xl">:</span>
+                                                <span className="text-slate-200 text-3xl sm:text-4xl">:</span>
                                                 <span className="text-blue-600 leading-none">{pad(getRem(current.endTime).s)}</span>
                                             </div>
-                                            <div className="mt-8 bg-blue-100 text-blue-800 px-8 py-3 rounded-full font-black uppercase text-xl border-2 border-blue-200 font-clock shadow-sm">Klar kl {new Date(current.endTime).toLocaleTimeString('sv-SE', {hour:'2-digit',minute:'2-digit'})}</div>
+                                            <div className="mt-6 sm:mt-8 bg-blue-100 text-blue-800 px-6 sm:px-8 py-2 sm:py-3 rounded-full font-black uppercase text-sm sm:text-xl border-2 border-blue-200 font-clock shadow-sm text-center">Klar kl {new Date(current.endTime).toLocaleTimeString('sv-SE', {hour:'2-digit',minute:'2-digit'})}</div>
                                             
                                             {/* NYA KNAPPAR FÖR ATT MINSKA ELLER AVBRYTA */}
-                                            <div className="flex gap-2 mt-6 w-full">
-                                                <button onClick={() => reduceActiveTask(current, 5)} className="flex-1 bg-white border-2 border-slate-300 text-slate-600 font-black uppercase py-3 rounded-xl shadow-sm text-sm hover:bg-slate-100">
+                                            <div className="flex flex-col sm:flex-row gap-2 mt-6 w-full">
+                                                <button onClick={() => reduceActiveTask(current, 5)} className="flex-1 bg-white border-2 border-slate-300 text-slate-600 font-black uppercase py-3 rounded-xl shadow-sm text-xs sm:text-sm hover:bg-slate-100">
                                                     -5 Minuter
                                                 </button>
-                                                <button onClick={() => cancelActiveTask(current)} className="flex-1 bg-red-100 border-2 border-red-300 text-red-600 font-black uppercase py-3 rounded-xl shadow-sm text-sm hover:bg-red-200">
+                                                <button onClick={() => cancelActiveTask(current)} className="flex-1 bg-red-100 border-2 border-red-300 text-red-600 font-black uppercase py-3 rounded-xl shadow-sm text-xs sm:text-sm hover:bg-red-200">
                                                     Avbryt uppdrag
                                                 </button>
                                             </div>
