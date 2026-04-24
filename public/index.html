@@ -519,13 +519,15 @@
                    <h3 className="text-slate-400 font-black uppercase tracking-widest px-4 text-sm font-clock text-center mb-6">Smarta Minnesregler</h3>
 
                    <div className="bg-white p-6 sm:p-8 rounded-[2.5rem] border-4 border-emerald-200 shadow-xl relative">
-                       <h4 className="text-2xl font-black text-slate-800 uppercase mb-4 flex items-center gap-3"><span className="text-4xl">📅</span> Månaderna</h4>
-                       <p className="text-slate-600 font-bold italic text-lg leading-relaxed bg-emerald-50 p-4 rounded-2xl border-2 border-emerald-100 shadow-inner">
-                           "Trettio dagar har november,<br/>
-                           april, juni och september.<br/>
-                           Februari tjugoåtta allena,<br/>
-                           alla de övriga trettioen ha."
-                       </p>
+                       <h4 className="text-2xl font-black text-slate-800 uppercase mb-4 flex items-center gap-3"><span className="text-4xl">👊</span> Knog-tricket (Månader)</h4>
+                       <div className="bg-emerald-50 p-4 rounded-2xl border-2 border-emerald-100 shadow-inner text-slate-700 font-bold space-y-3">
+                           <p className="text-sm sm:text-base">Glöm tråkiga ramsor! Gör händerna till knytnävar och räkna på dina knogar (börja från vänster):</p>
+                           <ul className="space-y-3 text-sm sm:text-base mt-2">
+                               <li className="flex items-center gap-2">⛰️ <strong className="text-emerald-700">Knoge (Toppen)</strong> = Lång månad (31 dagar)</li>
+                               <li className="flex items-center gap-2">🕳️ <strong className="text-emerald-700">Dal (Gropen)</strong> = Kort månad (30 dagar)</li>
+                           </ul>
+                           <p className="italic text-emerald-600 mt-3 text-xs border-t-2 border-emerald-200 pt-2">PS. Februari (första gropen) är alltid ett undantag och har bara 28 eller 29 dagar!</p>
+                       </div>
                    </div>
 
                    <div className="bg-white p-6 sm:p-8 rounded-[2.5rem] border-4 border-blue-200 shadow-xl relative">
@@ -539,15 +541,15 @@
                    </div>
 
                    <div className="bg-white p-6 sm:p-8 rounded-[2.5rem] border-4 border-purple-200 shadow-xl relative">
-                       <h4 className="text-2xl font-black text-slate-800 uppercase mb-4 flex items-center gap-3"><span className="text-4xl">🌈</span> Veckodagarna</h4>
-                       <div className="bg-purple-50 p-4 rounded-2xl border-2 border-purple-100 font-bold space-y-2 text-sm sm:text-base shadow-inner">
-                           <p className="text-[#4CAF50] drop-shadow-sm">Måndag gör vi ingenting (Grön som gräs)</p>
-                           <p className="text-[#2196F3] drop-shadow-sm">Tisdag ser vi oss omkring (Blå som himlen)</p>
-                           <p className="text-slate-500 drop-shadow-sm">Onsdag mitt i veckan går (Grå som moln)</p>
-                           <p className="text-[#8D6E63] drop-shadow-sm">Torsdag trötta vi ju mår (Brun som jord)</p>
-                           <p className="text-[#D4C42C] drop-shadow-sm">Fredag väntar vi på helg (Gul som sol)</p>
-                           <p className="text-[#E91E63] drop-shadow-sm">Lördag är en ledig dag (Rosa och glad)</p>
-                           <p className="text-[#F44336] drop-shadow-sm">Söndag, veckans sista drag! (Röd och skön)</p>
+                       <h4 className="text-2xl font-black text-slate-800 uppercase mb-4 flex items-center gap-3"><span className="text-4xl">🎮</span> Veckans Levling</h4>
+                       <div className="bg-purple-50 p-4 sm:p-5 rounded-2xl border-2 border-purple-100 font-bold space-y-4 text-sm sm:text-base shadow-inner">
+                           <div className="flex items-center gap-3 text-[#4CAF50]"><span className="text-2xl bg-white p-2 rounded-xl shadow-sm">🚀</span> <span><strong>Måndag:</strong> Ny vecka, vi startar på Level 1!</span></div>
+                           <div className="flex items-center gap-3 text-[#2196F3]"><span className="text-2xl bg-white p-2 rounded-xl shadow-sm">🧠</span> <span><strong>Tisdag:</strong> Träna hjärnan, samla in XP.</span></div>
+                           <div className="flex items-center gap-3 text-slate-500"><span className="text-2xl bg-white p-2 rounded-xl shadow-sm">🐪</span> <span><strong>Onsdag:</strong> Lill-lördag! Halvvägs genom mappen.</span></div>
+                           <div className="flex items-center gap-3 text-[#8D6E63]"><span className="text-2xl bg-white p-2 rounded-xl shadow-sm">⚡</span> <span><strong>Torsdag:</strong> Snart bossfight, aktivera boosten!</span></div>
+                           <div className="flex items-center gap-3 text-[#D4C42C]"><span className="text-2xl bg-white p-2 rounded-xl shadow-sm">🌮</span> <span><strong>Fredag:</strong> GG (Good Game)! Uppdraget slutfört, dags för mys.</span></div>
+                           <div className="flex items-center gap-3 text-[#E91E63]"><span className="text-2xl bg-white p-2 rounded-xl shadow-sm">💎</span> <span><strong>Lördag:</strong> Fri lek, gaming och loot (godis)!</span></div>
+                           <div className="flex items-center gap-3 text-[#F44336]"><span className="text-2xl bg-white p-2 rounded-xl shadow-sm">🔋</span> <span><strong>Söndag:</strong> AFK (Away From Keyboard). Ladda batteriet till 100%.</span></div>
                        </div>
                    </div>
                 </div>
@@ -1389,32 +1391,35 @@
             );
         }
 
-        // --- CHILD UI (WITH TABS) ---
         function ChildUI({ activities, currentTime, bankBalance, bankStreak, claimedQuests, addMoney, sendMessage, adminName, dailyMessage, db, appId, onLogout, changeRole, notifsEnabled, enableNotifs, bedtimeInfo }) {
             const [activeTab, setActiveTab] = useState('schema');
+            const [isIdle, setIsIdle] = useState(false); // NYTT: Håller koll på om skärmen är inaktiv
             
             useEffect(() => {
                 let timeoutId;
-                const resetToSchema = () => {
+                const handleActivity = () => {
+                    setIsIdle(false); // Vakna!
                     clearTimeout(timeoutId);
+                    // Starta timern på nytt (600000 ms = 10 minuter)
                     timeoutId = setTimeout(() => {
-                        setActiveTab('schema');
-                    }, 120000); // 120000 ms = 2 minuter
+                        setIsIdle(true); // Somna / Visa screensaver!
+                        setActiveTab('schema'); // Gå tillbaka till schemat i bakgrunden
+                    }, 600000); 
                 };
 
-                window.addEventListener('touchstart', resetToSchema);
-                window.addEventListener('click', resetToSchema);
-                window.addEventListener('scroll', resetToSchema);
-                window.addEventListener('mousemove', resetToSchema);
+                window.addEventListener('touchstart', handleActivity);
+                window.addEventListener('click', handleActivity);
+                window.addEventListener('scroll', handleActivity);
+                window.addEventListener('mousemove', handleActivity);
 
-                resetToSchema(); 
+                handleActivity(); 
 
                 return () => {
                     clearTimeout(timeoutId);
-                    window.removeEventListener('touchstart', resetToSchema);
-                    window.removeEventListener('click', resetToSchema);
-                    window.removeEventListener('scroll', resetToSchema);
-                    window.removeEventListener('mousemove', resetToSchema);
+                    window.removeEventListener('touchstart', handleActivity);
+                    window.removeEventListener('click', handleActivity);
+                    window.removeEventListener('scroll', handleActivity);
+                    window.removeEventListener('mousemove', handleActivity);
                 };
             }, []);
 
@@ -1961,6 +1966,49 @@
 
             return (
                 <div className="min-h-screen bg-slate-100">
+                    
+                    {/* NYTT: SCREENSAVER (Ligger i ett eget lager ovanpå allt, visas bara när isIdle är sant) */}
+                    <AnimatePresence>
+                        {isIdle && (
+                            <motion.div 
+                                initial={{ opacity: 0 }} 
+                                animate={{ opacity: 1 }} 
+                                exit={{ opacity: 0 }}
+                                transition={{ duration: 1 }}
+                                className="fixed inset-0 bg-slate-900 z-[9999] flex flex-col items-center justify-center text-white cursor-pointer"
+                            >
+                                {/* Datum istället för hela kalendern */}
+                                <div className="text-slate-400 uppercase tracking-[0.3em] font-black mb-8 text-xl sm:text-2xl">
+                                    {["Söndag", "Måndag", "Tisdag", "Onsdag", "Torsdag", "Fredag", "Lördag"][currentTime.getDay()]} {currentTime.getDate()} {["Januari", "Februari", "Mars", "April", "Maj", "Juni", "Juli", "Augusti", "September", "Oktober", "November", "December"][currentTime.getMonth()]}
+                                </div>
+                                
+                                {/* Klockor */}
+                                <AnalogClock date={currentTime} size={200} />
+                                <div className="text-[7rem] sm:text-[12rem] font-clock mt-8 leading-none drop-shadow-[0_0_15px_rgba(255,255,255,0.1)]">
+                                    {String(currentTime.getHours()).padStart(2, '0')}:{String(currentTime.getMinutes()).padStart(2, '0')}
+                                </div>
+                                <div className="text-3xl sm:text-5xl font-black uppercase tracking-widest mt-2 text-blue-400 font-clock text-center px-4">
+                                    {getSwedishTimeWords(currentTime)}
+                                </div>
+                                
+                                {/* Nästa uppdrag */}
+                                {nextRealTaskId && (
+                                    <div className="mt-16 bg-slate-800/80 p-6 sm:p-8 rounded-[2rem] border-2 border-slate-700 flex flex-col items-center max-w-[90%] text-center shadow-2xl">
+                                        <span className="text-slate-400 uppercase font-black text-xs sm:text-sm tracking-widest mb-3">Nästa uppdrag</span>
+                                        <span className="text-2xl sm:text-3xl font-black text-white">{future.find(a => a.id === nextRealTaskId)?.title}</span>
+                                        <span className="bg-blue-600 text-white px-5 py-2 rounded-full font-black uppercase tracking-wider text-sm mt-4">
+                                            Börjar kl {new Date(future.find(a => a.id === nextRealTaskId)?.startTime).toLocaleTimeString('sv-SE', {hour:'2-digit',minute:'2-digit'})}
+                                        </span>
+                                    </div>
+                                )}
+                                
+                                <div className="absolute bottom-10 text-slate-500 uppercase font-black tracking-widest animate-pulse text-xs sm:text-sm">
+                                    Tryck var som helst för att väcka
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
                     <div className="max-w-3xl mx-auto p-4 md:p-8 pb-20 relative">
                         <audio ref={audioRef} src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto" />
                         
