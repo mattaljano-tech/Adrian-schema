@@ -948,7 +948,14 @@
                                         className={`flex justify-between items-center group ${completelyDone ? 'cursor-default' : 'cursor-pointer'}`}
                                         onClick={(e) => {
                                             if (completelyDone) return;
-                                            if (q.type === 'simple') handleClaim(q.reward, e, q.id, q.title);
+                                            if (q.type === 'simple') {
+                                                // Om det är "Lyssna på musik"-uppdraget, öppna Spotify!
+                                                if (q.id === 'q12') {
+                                                    window.open('https://open.spotify.com/', '_blank');
+                                                    // Tips: Du kan byta ut länken ovan mot en länk till en specifik spellista om du vill!
+                                                }
+                                                handleClaim(q.reward, e, q.id, q.title);
+                                            }
                                             else setExpandedChore(expandedChore === q.id ? null : q.id);
                                         }}
                                      >
