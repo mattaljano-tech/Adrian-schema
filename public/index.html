@@ -595,7 +595,13 @@
             const [readTime, setReadTime] = useState(0);
             const [isReading, setIsReading] = useState(false);
             const levelUpAudioRef = useRef(null);
-
+            // NYTT: Låtlista för Mindfulness
+            const mindfulnessSongs = [
+                { id: 'm1', title: 'Avslappning i Rymden', url: 'https://din-länk-till-låt-1.mp3' },
+                { id: 'm2', title: 'Lugna Skogen', url: 'https://din-länk-till-låt-2.mp3' },
+                { id: 'm3', title: 'Gaming Chill Lofi', url: 'https://din-länk-till-låt-3.mp3' }
+            ];
+            const [selectedSong, setSelectedSong] = useState(mindfulnessSongs[0].url);
             const cleanTasks = [
                 { id: 'c1', text: 'Plocka upp kläder', reward: 5 },
                 { id: 'c2', text: 'Bädda sängen', reward: 5 }
@@ -1082,7 +1088,70 @@
                             </motion.button>
                         </div>
                     </div>
+                        {/* NYTT: MINDFULNESS SPELARE MED RITAD BAKGRUND */}
+                    <div className="bg-indigo-100 rounded-[2.5rem] p-6 sm:p-8 shadow-xl border-4 border-indigo-300 relative overflow-hidden transition-colors duration-500 mt-8">
+                        {/* --- RITAD BAKGRUND (SVG) --- */}
+                        <svg className="absolute inset-0 w-full h-full object-cover z-0" viewBox="0 0 800 400" preserveAspectRatio="xMidYMid slice">
+                            {/* Himmelsbakgrund */}
+                            <rect width="800" height="400" fill="#a5b4fc" />
+                            
+                            {/* Måne */}
+                            <circle cx="700" cy="80" r="40" fill="#fef3c7" />
+                            
+                            {/* Stiliserade kullar (mindfulness-landskap) */}
+                            <path d="M0,320 C150,250 350,380 500,310 C650,240 800,340 800,320 L800,400 L0,400 Z" fill="#6366f1" />
+                            <path d="M0,360 C100,340 200,390 300,360 C400,330 500,380 600,350 C700,330 800,380 800,360 L800,400 L0,400 Z" fill="#4f46e5" />
+                            
+                            {/* Stiliserade ljudvågor / Aura (halvcirklar) */}
+                            <g fill="none" stroke="#c7d2fe" strokeWidth="3" opacity="0.5">
+                                <circle cx="400" cy="200" r="50" />
+                                <circle cx="400" cy="200" r="100" />
+                                <circle cx="400" cy="200" r="150" />
+                            </g>
+                            
+                            {/* Emojis i bakgrunden */}
+                            <text x="350" y="340" fontSize="50">🧘‍♂️</text>
+                            <text x="100" y="100" fontSize="30">✨</text>
+                            <text x="600" y="150" fontSize="30">✨</text>
+                        </svg>
 
+                        {/* --- MÖRKT FILTER FÖR TEXT-KONTRAST --- */}
+                        <div className="absolute inset-0 bg-slate-900/60 z-10 backdrop-blur-[1px]"></div>
+
+                        {/* --- INNEHÅLL (Z-20 för att ligga överst) --- */}
+                        <div className="relative z-20">
+                            <div className="flex items-center gap-4 mb-6">
+                                <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-4xl shadow-md bg-white">🎧</div>
+                                <div>
+                                    {/* Uppdaterade textfärger till vit/ljusgrå för bättre kontrast mot mörka filtret */}
+                                    <h4 className="text-2xl font-black text-white uppercase tracking-wide drop-shadow-md">Mindfulness</h4>
+                                    <p className="text-indigo-100 font-bold text-sm drop-shadow-md">Slappna av till sköna låtar.</p>
+                                </div>
+                            </div>
+
+                            <div className="bg-white/95 p-4 rounded-xl border-2 border-indigo-100 shadow-sm mb-6 backdrop-blur-sm">
+                                <label className="block text-xs font-black uppercase text-indigo-400 mb-2">Välj låt:</label>
+                                <select 
+                                    value={selectedSong} 
+                                    onChange={(e) => setSelectedSong(e.target.value)}
+                                    className="w-full p-3 bg-indigo-50 border-2 border-indigo-200 rounded-lg font-bold text-indigo-900 outline-none"
+                                >
+                                    {mindfulnessSongs.map(song => (
+                                        <option key={song.id} value={song.url}>{song.title}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="bg-white/95 p-4 rounded-2xl shadow-sm border-2 border-indigo-100 backdrop-blur-sm">
+                                <audio 
+                                    controls 
+                                    src={selectedSong} 
+                                    className="w-full"
+                                    style={{ filter: 'contrast(1.2) sepia(1) hue-rotate(200deg) saturate(3)' }} 
+                                ></audio>
+                            </div>
+                        </div>
+                    </div>
                     
                     
                 </div>
