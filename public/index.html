@@ -1391,19 +1391,52 @@
             );
         }
 
+        // --- CHILD UI (WITH TABS) ---
         function ChildUI({ activities, currentTime, bankBalance, bankStreak, claimedQuests, addMoney, sendMessage, adminName, dailyMessage, db, appId, onLogout, changeRole, notifsEnabled, enableNotifs, bedtimeInfo }) {
             const [activeTab, setActiveTab] = useState('schema');
-            const [isIdle, setIsIdle] = useState(false); // NYTT: Håller koll på om skärmen är inaktiv
-            
+            const [isIdle, setIsIdle] = useState(false);
+
+            // NYTT: Håll skärmen vaken (Wake Lock)
+            useEffect(() => {
+                let wakeLock = null;
+
+                const requestWakeLock = async () => {
+                    try {
+                        if ('wakeLock' in navigator) {
+                            wakeLock = await navigator.wakeLock.request('screen');
+                            console.log('Skärmen hålls vaken!');
+                        }
+                    } catch (err) {
+                        console.error(`Kunde inte hålla skärmen vaken: ${err.message}`);
+                    }
+                };
+
+                requestWakeLock();
+
+                const handleVisibilityChange = () => {
+                    if (document.visibilityState === 'visible') {
+                        requestWakeLock();
+                    }
+                };
+                document.addEventListener('visibilitychange', handleVisibilityChange);
+
+                return () => {
+                    if (wakeLock !== null) {
+                        wakeLock.release();
+                    }
+                    document.removeEventListener('visibilitychange', handleVisibilityChange);
+                };
+            }, []);
+
+            // Timer för skärmsläckaren
             useEffect(() => {
                 let timeoutId;
                 const handleActivity = () => {
-                    setIsIdle(false); // Vakna!
+                    setIsIdle(false);
                     clearTimeout(timeoutId);
-                    // Starta timern på nytt (600000 ms = 10 minuter)
                     timeoutId = setTimeout(() => {
-                        setIsIdle(true); // Somna / Visa screensaver!
-                        setActiveTab('schema'); // Gå tillbaka till schemat i bakgrunden
+                        setIsIdle(true);
+                        setActiveTab('schema');
                     }, 600000); 
                 };
 
@@ -1430,13 +1463,12 @@
             let timeline = [];
             if (activeAndFuture.length > 0) {
                 const firstEvent = activeAndFuture[0];
-                // Skapa en box om första saken börjar i framtiden (gapet just nu)
                 if (firstEvent.startTime > now) {
                     const gapMs = firstEvent.startTime - now;
                     if (gapMs >= 60000) { 
                         timeline.push({
                             id: 'gap-initial',
-                            title: 'Välj ett uppdrag 🎯', // Ändrat här
+                            title: 'Välj ett uppdrag 🎯',
                             startTime: now,
                             endTime: firstEvent.startTime,
                             duration: Math.round(gapMs / 60000),
@@ -1445,17 +1477,16 @@
                     }
                 }
                 
-                // Fyll på med riktiga event och skapa gap mellan dem
                 for (let i = 0; i < activeAndFuture.length; i++) {
                     timeline.push(activeAndFuture[i]);
                     if (i < activeAndFuture.length - 1) {
                         const currentEvent = activeAndFuture[i];
                         const nextEvent = activeAndFuture[i+1];
                         const gapMs = nextEvent.startTime - currentEvent.endTime;
-                        if (gapMs >= 2 * 60000) { // Skapa box om gapet är över 2 min
+                        if (gapMs >= 2 * 60000) { 
                             timeline.push({
                                 id: `gap-${currentEvent.id}`,
-                                title: 'Välj ett uppdrag 🎯', // Ändrat här
+                                title: 'Välj ett uppdrag 🎯',
                                 startTime: currentEvent.endTime,
                                 endTime: nextEvent.startTime,
                                 duration: Math.round(gapMs / 60000),
@@ -1466,14 +1497,12 @@
                 }
             }
             
-            // Sortera hela tidslinjen kronologiskt
             timeline.sort((a, b) => a.startTime - b.startTime);
 
             const current = timeline.find(a => a.startTime <= now && a.endTime > now);
             const future = timeline.filter(a => a.startTime > now);
             const live = activeAndFuture.find(a => a.isLiveEvent);
             
-            // Hitta det nästa RIKTIGA uppdraget (hoppa över Fritid/Gap)
             const nextRealTaskId = future.find(x => !x.isGap)?.id;
 
             const pad = (n) => String(n).padStart(2,'0');
@@ -1487,7 +1516,6 @@
             const scrollToSchedule = () => {
                 document.getElementById('schedule-section')?.scrollIntoView({ behavior: 'smooth' });
             };
-
             return (
                 <div className="mt-4 relative pb-24">
                     
