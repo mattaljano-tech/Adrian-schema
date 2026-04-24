@@ -653,6 +653,21 @@
 
             const [readTime, setReadTime] = useState(0);
             const [isReading, setIsReading] = useState(false);
+            const [showReadPrompt, setShowReadPrompt] = useState(false); // Ny state för pop-up
+
+            // Ny logik för automatisk betalning och idle-check
+            useEffect(() => {
+                if (readTime === 900) { // 15 minuter
+                    setShowReadPrompt(true);
+                }
+                if (readTime === 1020 && showReadPrompt) { // 17 minuter och ingen har klickat
+                    setIsReading(false);
+                    setShowReadPrompt(false);
+                }
+                if (readTime > 0 && readTime % 600 === 0 && isReading) { // Var 10:e minut (600 sekunder)
+                    handleClaim(10, null, null, "Läsning 10 minuter");
+                }
+            }, [readTime, isReading, showReadPrompt]);
             const levelUpAudioRef = useRef(null);
             const mindfulnessAudioRef = useRef(null);
             const [isMindfulnessPlaying, setIsMindfulnessPlaying] = useState(false);
@@ -720,6 +735,7 @@
             };
 
             useEffect(() => {
+                window.isTimerActive = isWalking || isReading; // Säg till appen att inte stänga ner
                 let interval = null;
                 if (isWalking || isReading) {
                     interval = setInterval(() => {
@@ -1051,6 +1067,16 @@
                                 </div>
                             </div>
 
+                            {showReadPrompt && (
+                                <div className="mb-4 bg-yellow-400 p-6 rounded-2xl border-4 border-yellow-500 shadow-xl text-center animate-bounce">
+                                    <h4 className="text-2xl font-black text-yellow-900 uppercase mb-2">Läser du fortfarande? 👀</h4>
+                                    <p className="text-yellow-800 font-bold mb-4">Svara inom 2 minuter annars stängs timern av!</p>
+                                    <button onClick={() => setShowReadPrompt(false)} className="bg-yellow-900 text-yellow-400 px-8 py-3 rounded-full font-black uppercase text-lg shadow-md hover:bg-yellow-800">
+                                        Ja, jag läser!
+                                    </button>
+                                </div>
+                            )}
+
                             <div className="flex flex-col sm:flex-row gap-3">
                                 <motion.button 
                                     whileHover={{ scale: 1.02 }}
@@ -1060,15 +1086,13 @@
                                 >
                                     {readTime === 0 ? '▶ Starta Timer' : isReading ? '⏸ Pausa' : '▶ Fortsätt läsa'}
                                 </motion.button>
-
-                                {readReward > 0 && (
+                                
+                                {readTime > 0 && !isReading && (
                                     <motion.button 
-                                        whileHover={{ scale: 1.02 }}
-                                        whileTap={{ scale: 0.95 }}
-                                        onClick={claimReadReward} 
-                                        className="flex-1 py-4 bg-yellow-400 hover:bg-yellow-300 text-slate-900 rounded-xl font-black uppercase tracking-widest shadow-xl transition-colors border-2 border-yellow-500 animate-in zoom-in"
+                                        onClick={() => setReadTime(0)} 
+                                        className="flex-1 py-4 bg-slate-200 text-slate-600 rounded-xl font-black uppercase tracking-widest border-2 border-slate-300 hover:bg-slate-300"
                                     >
-                                        💰 Hämta {readReward} kr!
+                                        ⏹ Avsluta & Nollställ
                                     </motion.button>
                                 )}
                             </div>
@@ -1257,11 +1281,12 @@
     // --- NY KOMPONENT: SHOP TAB ---
     const ShopTab = ({ bankBalance, handleClaim, sendMessage }) => {
         const shopItems = [
+            { id: 's9', title: "Köp Teardown tid", cost: 100, icon: "🔨" },
             { id: 's2', title: "1 timme PS5", cost: 100, icon: "🎮" },
             { id: 's4', title: "Filmmys med snacks", cost: 150, icon: "🍿" },
-            { id: 's7', title: "Välj helgfika / Baka", cost: 120, icon: "🍪" },
+            { id: 's7', title: "Välj helgsnacks/godis", cost: 120, icon: "🍪" },
             { id: 's5', title: "Välj Lyxmiddag", cost: 200, icon: "🌮" },
-            { id: 's1', title: "100 Robux", cost: 250, icon: "💎" },
+            { id: 's1', title: "100 Robux", cost: 165, icon: "💎" },
             { id: 's8', title: "Spara till: Nytt PS5-spel", cost: 1500, icon: "📀" }
         ];
 
@@ -1347,7 +1372,6 @@
                 setIsLiveEvent(activity.isLiveEvent || false);
                 
                 setShowAddForm(true);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
             };
 
             const handleAdd = async (e) => {
@@ -1557,6 +1581,8 @@ const handleSaveBedtime = async () => {
                                     <button type="button" onClick={() => setNewDuration('180')} className="px-3 py-2 bg-white border border-slate-300 rounded-lg font-bold text-xs hover:bg-slate-100 shadow-sm">3 tim</button>
                                     
                                     <div className="w-[2px] bg-slate-200 mx-1"></div>
+
+                                    <button type="button" onClick={() => setNewDuration(Math.max(5, Number(newDuration) - 15).toString())} className="px-3 py-2 bg-red-100 text-red-700 rounded-lg font-bold text-xs hover:bg-red-200 shadow-sm">- 15 min</button>
                                     
                                     <button type="button" onClick={() => setNewDuration((Number(newDuration) + 15).toString())} className="px-3 py-2 bg-blue-100 text-blue-700 rounded-lg font-bold text-xs hover:bg-blue-200 shadow-sm">+ 15 min</button>
                                     <button type="button" onClick={() => setNewDuration((Number(newDuration) + 30).toString())} className="px-3 py-2 bg-blue-100 text-blue-700 rounded-lg font-bold text-xs hover:bg-blue-200 shadow-sm">+ 30 min</button>
@@ -1679,9 +1705,10 @@ const handleSaveBedtime = async () => {
                     setIsIdle(false);
                     clearTimeout(timeoutId);
                     timeoutId = setTimeout(() => {
+                        if (window.isTimerActive) return; // Avbryt inte om en timer körs!
                         setIsIdle(true);
                         setActiveTab('schema');
-                    }, 600000); 
+                    }, 600000);
                 };
 
                 window.addEventListener('touchstart', handleActivity);
@@ -1759,6 +1786,16 @@ const handleSaveBedtime = async () => {
 
             const scrollToSchedule = () => {
                 document.getElementById('schedule-section')?.scrollIntoView({ behavior: 'smooth' });
+            };
+
+            const reduceActiveTask = async (activity, mins) => {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'schedule_items', activity.id);
+                await updateDoc(docRef, { endTime: activity.endTime - (mins * 60000) });
+            };
+
+            const cancelActiveTask = async (activity) => {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'schedule_items', activity.id);
+                await updateDoc(docRef, { endTime: Date.now() });
             };
             return (
                 <div className="mt-4 relative pb-24">
@@ -1929,6 +1966,16 @@ const handleSaveBedtime = async () => {
                                                 <span className="text-blue-600 leading-none">{pad(getRem(current.endTime).s)}</span>
                                             </div>
                                             <div className="mt-8 bg-blue-100 text-blue-800 px-8 py-3 rounded-full font-black uppercase text-xl border-2 border-blue-200 font-clock shadow-sm">Klar kl {new Date(current.endTime).toLocaleTimeString('sv-SE', {hour:'2-digit',minute:'2-digit'})}</div>
+                                            
+                                            {/* NYA KNAPPAR FÖR ATT MINSKA ELLER AVBRYTA */}
+                                            <div className="flex gap-2 mt-6 w-full">
+                                                <button onClick={() => reduceActiveTask(current, 5)} className="flex-1 bg-white border-2 border-slate-300 text-slate-600 font-black uppercase py-3 rounded-xl shadow-sm text-sm hover:bg-slate-100">
+                                                    -5 Minuter
+                                                </button>
+                                                <button onClick={() => cancelActiveTask(current)} className="flex-1 bg-red-100 border-2 border-red-300 text-red-600 font-black uppercase py-3 rounded-xl shadow-sm text-sm hover:bg-red-200">
+                                                    Avbryt uppdrag
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 ) : (
@@ -2124,6 +2171,7 @@ const handleSaveBedtime = async () => {
             const [error, setError] = useState(null);
             const audioRef = useRef(null);
             const firedNotifs = useRef(new Set());
+            const [prepAlert, setPrepAlert] = useState(null);
 
             const changeRole = (newRole) => {
                 if (newRole) {
@@ -2276,6 +2324,7 @@ const handleSaveBedtime = async () => {
                         if (Notification.permission === "granted") new Notification("Dags att göra sig i ordning!", { body: a.title });
                         audioRef.current?.play().catch(e => console.log("Audio failed", e));
                         firedNotifs.current.add(a.id + '-prep');
+                        setPrepAlert(`Dags att förbereda sig för: ${a.title}!`); // Visar larmet
                     }
                     if (Math.abs(now - a.startTime) < 2000 && !firedNotifs.current.has(a.id + '-start')) {
                         if (Notification.permission === "granted") new Notification("Nu börjar det!", { body: a.title });
@@ -2346,6 +2395,27 @@ const handleSaveBedtime = async () => {
         {(currentTime.getHours() >= 20 || currentTime.getHours() < 6) && (
             <div className="fixed inset-0 z-[9998] pointer-events-none bg-orange-900/10 backdrop-brightness-75 backdrop-contrast-125 transition-all duration-1000"></div>
         )}
+
+        {/* --- STORT LARM FÖR FÖRBEREDELSE --- */}
+        <AnimatePresence>
+            {prepAlert && (
+                <motion.div 
+                    initial={{ opacity: 0, scale: 0.8 }} 
+                    animate={{ opacity: 1, scale: 1 }} 
+                    exit={{ opacity: 0, scale: 1.1 }}
+                    className="fixed inset-0 z-[99999] bg-red-600/90 backdrop-blur-md flex flex-col items-center justify-center p-8 text-center"
+                >
+                    <div className="text-[8rem] animate-bounce mb-4">🚨</div>
+                    <h1 className="text-4xl sm:text-6xl font-black uppercase text-white tracking-widest drop-shadow-xl mb-8">{prepAlert}</h1>
+                    <button 
+                        onClick={() => setPrepAlert(null)}
+                        className="bg-white text-red-600 px-12 py-5 rounded-full font-black uppercase text-xl shadow-2xl border-4 border-red-300 hover:scale-105 active:scale-95 transition-transform"
+                    >
+                        Jag fattar! (Stäng)
+                    </button>
+                </motion.div>
+            )}
+        </AnimatePresence>
 
         {/* NYTT: SCREENSAVER */}
                     
