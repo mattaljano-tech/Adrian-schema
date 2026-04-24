@@ -18,6 +18,7 @@
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     
     <style>
         .font-clock { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif !important; font-weight: 800 !important; }
@@ -40,7 +41,7 @@
     <script type="text/babel" data-type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, onSnapshot, doc, setDoc, deleteDoc, updateDoc, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, doc, setDoc, deleteDoc, updateDoc, addDoc, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-messaging.js";
         
         const { useState, useEffect, useRef } = React;
@@ -60,7 +61,12 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        
+        // Slå på Offline-läge
+            try {
+            enableIndexedDbPersistence(db);
+            } catch (err) {
+            console.log("Offline-läge kunde inte aktiveras just nu", err);
+        }
         // --- UTILS ---
         const formatDuration = (mins) => {
             if (mins < 60) return `${mins} min`;
@@ -588,6 +594,7 @@
 
             const [readTime, setReadTime] = useState(0);
             const [isReading, setIsReading] = useState(false);
+            const levelUpAudioRef = useRef(null);
 
             const cleanTasks = [
                 { id: 'c1', text: 'Plocka upp kläder', reward: 5 },
@@ -626,14 +633,7 @@
     { id: 'q12', title: "Lyssna på musik (10 min)", reward: 10, icon: "🎧", type: "simple" }
 ];
 
-            const shopItems = [
-                { id: 's2', title: "1 timme PS5", cost: 100, icon: "🎮" },
-                { id: 's4', title: "Filmmys med snacks", cost: 150, icon: "🍿" },
-                { id: 's7', title: "Välj helgfika / Baka", cost: 120, icon: "🍪" },
-                { id: 's5', title: "Välj Lyxmiddag", cost: 200, icon: "🌮" },
-                { id: 's1', title: "100 Robux", cost: 250, icon: "💎" },
-                { id: 's8', title: "Spara till: Nytt PS5-spel", cost: 1500, icon: "📀" }
-            ];
+            
 
             const isClaimedToday = (id) => {
                 if (!claimedQuests || !claimedQuests[id]) return false;
@@ -698,22 +698,16 @@
                 setFlyingCoins(prev => [...prev, { id, amount, startX, startY, tx, ty }]);
 
                 setTimeout(() => {
-                    setFlyingCoins(prev => prev.filter(c => c.id !== id));
-                    addMoney(amount, true, questId); 
-                    if(amount > 0) {
-                        alert(`Snyggt jobbat! Du tjänade +${amount} kr`);
-                    }
+                setFlyingCoins(prev => prev.filter(c => c.id !== id));
+                addMoney(amount, true, questId); 
+                if (amount >= 10) { // Större uppdrag ger Level Up & Konfetti!
+                window.confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#4CAF50', '#FFEB3B', '#2196F3'] });
+                levelUpAudioRef.current?.play().catch(e => console.log(e));
+                 }
                 }, 800);
-            };
+                };
 
-            const handleBuy = (item, e) => {
-                if (bankBalance >= item.cost) {
-                    handleClaim(-item.cost, e, null, "Köp");
-                    sendMessage(`Adrian har köpt: ${item.title}!`, item.icon);
-                } else {
-                    alert(`Du behöver ${item.cost - bankBalance} kr till för att köpa detta!`);
-                }
-            };
+            
 
             const getTasks = (listType) => {
                 if (listType === 'clean') return cleanTasks;
@@ -779,9 +773,21 @@
                     lastPosition.current = null;
                 }
             };
+                // --- XP-MÄTARE LOGIK ---
+                const totalXP = fastQuests.length;
+                const earnedXP = fastQuests.filter(q => {
+                    if (q.type === 'simple') return isClaimedToday(q.id);
+                    if (q.type === 'checklist') {
+                    const tasks = getTasks(q.list);
+                    return tasks.length > 0 && tasks.every(t => isClaimedToday(t.id));
+            }
+            return false;
+        }).length;
+        const progressPercent = totalXP > 0 ? Math.round((earnedXP / totalXP) * 100) : 0;
 
             return (
                 <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
+                    <audio ref={levelUpAudioRef} src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3" preload="auto" />
                     {flyingCoins.map(c => <FlyingCoin key={c.id} coin={c} />)}
 
                     {/* VIRTUELL BANK */}
@@ -814,6 +820,24 @@
                         <span className="text-3xl">💰</span>
                         <p className="font-bold text-emerald-800 text-sm">Välj ett uppdrag nedan och börja tjäna egna pengar!</p>
                     </div>
+                    {/* XP MÄTARE */}
+                    <div className="bg-white border-4 border-slate-200 p-6 rounded-3xl shadow-sm mt-8 relative overflow-hidden">
+                    <div className="flex justify-between items-end mb-2 relative z-10">
+                    <h3 className="font-black uppercase tracking-widest text-slate-700">Dagens XP (Level Progress)</h3>
+                    <span className="font-clock text-2xl font-black text-emerald-500">{progressPercent}%</span>
+                </div>
+                    <div className="w-full h-6 bg-slate-100 rounded-full border-2 border-slate-200 overflow-hidden relative z-10">
+                    <div 
+                        className="h-full bg-gradient-to-r from-emerald-400 to-emerald-500 transition-all duration-1000 ease-out"
+                        style={{ width: `${progressPercent}%` }}
+                ></div>
+            </div>
+            {progressPercent === 100 && (
+                <div className="absolute inset-0 flex items-center justify-center bg-white/90 z-20 backdrop-blur-sm">
+                 <span className="text-2xl sm:text-4xl animate-bounce font-black text-orange-500">🔥 MAX LEVEL NÅDD IDAG! 🔥</span>
+                </div>
+                 )}
+                </div>
 
                     <h3 className="text-slate-400 font-black uppercase tracking-widest px-4 text-sm font-clock mt-8 mb-4 border-b-2 border-slate-200 pb-2">🎯 Gör uppdrag, tjäna pengar!</h3>
                     
@@ -1061,35 +1085,56 @@
 
                     <h3 className="text-slate-400 font-black uppercase tracking-widest px-4 text-sm font-clock mt-12 mb-4 border-b-2 border-slate-200 pb-2">🛒 Belöningsbutik</h3>
                     
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {shopItems.map(item => {
-                            const canAfford = bankBalance >= item.cost;
-                            return (
-                                <div key={item.id} className="bg-white p-6 rounded-3xl border-4 border-slate-200 shadow-md flex flex-col items-center text-center group hover:border-blue-300 transition-colors">
-                                    <span className="text-6xl mb-4 group-hover:scale-110 transition-transform drop-shadow-md">{item.icon}</span>
-                                    <h4 className="font-black text-slate-800 uppercase tracking-wide mb-2 leading-tight">{item.title}</h4>
-                                    <div className="bg-slate-100 text-slate-500 font-black px-4 py-1 rounded-full border-2 border-slate-200 mb-4 text-sm">
-                                        Kostar: {item.cost} kr
-                                    </div>
-                                    <motion.button 
-                                        whileHover={canAfford ? { scale: 1.02 } : {}}
-                                        whileTap={canAfford ? { scale: 0.95 } : {}}
-                                        onClick={(e) => handleBuy(item, e)}
-                                        className={`w-full py-3 rounded-xl font-black uppercase tracking-widest shadow-sm transition-colors border-2 ${canAfford ? 'bg-blue-600 text-white border-blue-700 hover:bg-blue-500' : 'bg-slate-200 text-slate-400 border-slate-300 cursor-not-allowed'}`}
-                                    >
-                                        {canAfford ? 'Köp' : 'Spara mer'}
-                                    </motion.button>
-                                </div>
-                            );
-                        })}
-                    </div>
                 </div>
             );
         };
 
-        // --- PARENT UI (MED INKORG OCH NYA INSTÄLLNINGAR) ---
-        function ParentUI({ activities, bankBalance, addMoney, setBankZero, adminName, setAdminName, dailyMessage, setDailyMessage, db, appId, user, onLogout, messages }) {
-            const [showAddForm, setShowAddForm] = useState(false);
+      
+
+    // --- NY KOMPONENT: SHOP TAB ---
+    const ShopTab = ({ bankBalance, handleClaim, sendMessage }) => {
+        const shopItems = [
+            { id: 's2', title: "1 timme PS5", cost: 100, icon: "🎮" },
+            { id: 's4', title: "Filmmys med snacks", cost: 150, icon: "🍿" },
+            { id: 's7', title: "Välj helgfika / Baka", cost: 120, icon: "🍪" },
+            { id: 's5', title: "Välj Lyxmiddag", cost: 200, icon: "🌮" },
+            { id: 's1', title: "100 Robux", cost: 250, icon: "💎" },
+            { id: 's8', title: "Spara till: Nytt PS5-spel", cost: 1500, icon: "📀" }
+        ];
+
+        const handleBuy = (item) => { // Tog bort 'e' härifrån
+            if (bankBalance >= item.cost) {
+                handleClaim(-item.cost, false); // <--- Ändrade här! false = det är inget uppdrag
+                sendMessage(`Adrian har köpt: ${item.title}!`, item.icon);
+            } else {
+                alert(`Du behöver ${item.cost - bankBalance} kr till!`);
+            }
+        };
+
+        return (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                {shopItems.map(item => (
+                    <div key={item.id} className="bg-white p-6 rounded-3xl border-4 border-slate-200 shadow-md flex flex-col items-center text-center group">
+                        <span className="text-6xl mb-4 group-hover:scale-110 transition-transform">{item.icon}</span>
+                        <h4 className="font-black text-slate-800 uppercase mb-2">{item.title}</h4>
+                        <div className="bg-slate-100 text-slate-500 font-black px-4 py-1 rounded-full mb-4">Kostar: {item.cost} kr</div>
+                        <button 
+                            <button 
+                            onClick={() => handleBuy(item)} // <--- Tog bort '(e)' och ', e'
+                            className={`w-full py-3 rounded-xl font-black uppercase ${bankBalance >= item.cost ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-400'}`}
+                        >
+                            {bankBalance >= item.cost ? 'Köp' : 'Spara mer'}
+                        </button>
+                    </div>
+                ))}
+            </div>
+        );
+    };
+    // ------------------------------
+
+    // --- PARENT UI (MED INKORG OCH NYA INSTÄLLNINGAR) ---
+    function ParentUI({ activities, bankBalance, addMoney, setBankZero, adminName, setAdminName, dailyMessage, setDailyMessage, db, appId, user, onLogout, messages }) {
+        const [showAddForm, setShowAddForm] = useState(false);
             const [editingId, setEditingId] = useState(null);
             const [newTitle, setNewTitle] = useState('');
             const [newDate, setNewDate] = useState(new Date().toISOString().split('T')[0]);
@@ -1565,10 +1610,11 @@
                     {/* MENYRADEN MED STÖRRE FOKUS PÅ SCHEMA */}
                     <div className="flex bg-slate-200/50 p-2 rounded-full mb-10 border-2 border-slate-200 relative isolate">
                         {[
-                            { id: 'schema', label: '🏠 Schema', bg: 'bg-white', textActive: 'text-blue-600', flex: 'flex-[1.5]' },
+                            { id: 'schema', label: '🏠 Schema', bg: 'bg-white', textActive: 'text-blue-600', flex: 'flex-1' },
                             { id: 'learn', label: 'Lär dig', bg: 'bg-white', textActive: 'text-purple-600', flex: 'flex-1' },
-                            { id: 'earn', label: 'Ekonomi & Uppdrag', bg: 'bg-emerald-500', textActive: 'text-white', flex: 'flex-[1.2]' }
-                        ].map((tab) => (
+                            { id: 'earn', label: 'Uppdrag', bg: 'bg-emerald-500', textActive: 'text-white', flex: 'flex-1' },
+                            { id: 'shop', label: '🛒 Butik', bg: 'bg-amber-400', textActive: 'text-white', flex: 'flex-1' }
+                            ].map((tab) => (
                             <motion.button
                                 key={tab.id}
                                 whileHover={{ scale: 1.02 }}
@@ -1816,6 +1862,13 @@
                     {activeTab === 'earn' && (
                         <EconomyTab addMoney={addMoney} bankBalance={bankBalance} bankStreak={bankStreak} claimedQuests={claimedQuests} sendMessage={sendMessage} adminName={adminName} />
                     )}
+                    {activeTab === 'shop' && (
+    <ShopTab 
+        bankBalance={bankBalance} 
+        handleClaim={addMoney} 
+        sendMessage={sendMessage} 
+    />
+)}
                 </div>
             );
         }
@@ -2036,7 +2089,14 @@
             })(currentTime.getTime());
 
             return (
-                <div className="min-h-screen bg-slate-100">
+    <div className="min-h-screen bg-slate-100">
+        
+        {/* Nattläge - Dämpar skärmen och värmer färgerna mellan 20:00 - 06:00 */}
+        {(currentTime.getHours() >= 20 || currentTime.getHours() < 6) && (
+            <div className="fixed inset-0 z-[9998] pointer-events-none bg-orange-900/10 backdrop-brightness-75 backdrop-contrast-125 transition-all duration-1000"></div>
+        )}
+
+        {/* NYTT: SCREENSAVER */}
                     
                     
                     <div className="max-w-3xl mx-auto p-4 md:p-8 pb-20 relative">
