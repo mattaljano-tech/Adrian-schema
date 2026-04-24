@@ -747,11 +747,19 @@
             };
 
             const handleClaim = (amount, e, questId = null, description = "Uppdrag") => {
-                const rect = e.currentTarget.getBoundingClientRect();
-                const startX = rect.left + rect.width / 2;
-                const startY = rect.top + rect.height / 2;
-                const id = Date.now() + Math.random();
+                let startX = window.innerWidth / 2;
+                let startY = window.innerHeight / 2;
 
+                // Säkerställer att animationen hittar rätt oavsett var man klickar
+                if (e && e.currentTarget) {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    if (rect.width > 0) {
+                        startX = rect.left + rect.width / 2;
+                        startY = rect.top + rect.height / 2;
+                    }
+                }
+
+                const id = Date.now() + Math.random();
                 const bankEl = document.getElementById('adrians-bank-balance');
                 let tx = 0;
                 let ty = -500;
@@ -763,15 +771,18 @@
 
                 setFlyingCoins(prev => [...prev, { id, amount, startX, startY, tx, ty }]);
 
-                setTimeout(() => {
-                setFlyingCoins(prev => prev.filter(c => c.id !== id));
+                // FIX: Vi sparar till databasen DIREKT istället för att vänta på animationen!
                 addMoney(amount, true, questId); 
-                if (amount >= 10) { // Större uppdrag ger Level Up & Konfetti!
-                window.confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#4CAF50', '#FFEB3B', '#2196F3'] });
-                levelUpAudioRef.current?.play().catch(e => console.log(e));
-                 }
+                
+                if (amount >= 10) { 
+                    window.confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#4CAF50', '#FFEB3B', '#2196F3'] });
+                    levelUpAudioRef.current?.play().catch(err => console.log(err));
+                }
+
+                setTimeout(() => {
+                    setFlyingCoins(prev => prev.filter(c => c.id !== id));
                 }, 800);
-                };
+            };
 
             
 
@@ -1305,7 +1316,7 @@
     // ------------------------------
 
     // --- PARENT UI (MED INKORG OCH NYA INSTÄLLNINGAR) ---
-    function ParentUI({ activities, bankBalance, addMoney, setBankZero, adminName, setAdminName, dailyMessage, setDailyMessage, bedtime, db, appId, user, onLogout, messages }) {
+    function ParentUI({ activities, bankBalance, addMoney, setBankZero, setStreakZero, resetDailyQuests, adminName, setAdminName, dailyMessage, setDailyMessage, bedtime, db, appId, user, onLogout, messages }) {
         const [showAddForm, setShowAddForm] = useState(false);
             const [editingId, setEditingId] = useState(null);
             const [newTitle, setNewTitle] = useState('');
@@ -1490,7 +1501,7 @@ const handleSaveBedtime = async () => {
                             </motion.button>
                         </div>
                     </div>
-                    
+
                     <div className="bg-slate-800 border-4 border-slate-700 p-6 sm:p-8 rounded-3xl shadow-xl text-white">
                         <h2 className="font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">💳 Adrians Virtuella Bank</h2>
                         <div className="text-6xl font-clock font-black mb-6">{bankBalance} <span className="text-2xl text-slate-400">kr</span></div>
@@ -1501,23 +1512,28 @@ const handleSaveBedtime = async () => {
                             <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => addMoney(10, false)} className="bg-green-500/20 text-green-400 border-2 border-green-500/50 hover:bg-green-500/40 p-3 rounded-xl font-black uppercase text-sm transition-colors">+10</motion.button>
                             <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => addMoney(50, false)} className="bg-green-500/20 text-green-400 border-2 border-green-500/50 hover:bg-green-500/40 p-3 rounded-xl font-black uppercase text-sm transition-colors">+50</motion.button>
                         </div>
-                        <motion.button 
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => {
-                                if(confirmReset) {
-                                    setBankZero();
-                                    setConfirmReset(false);
-                                } else {
-                                    setConfirmReset(true);
-                                    setTimeout(() => setConfirmReset(false), 3000);
-                                }
-                            }} 
-                            className={`w-full p-4 rounded-xl font-black uppercase text-sm transition-colors flex items-center justify-center gap-2 border-2 ${confirmReset ? 'bg-red-600 text-white border-red-700' : 'bg-slate-700 text-slate-300 border-slate-600 hover:bg-slate-600'}`}
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-                            {confirmReset ? "Tryck igen för att bekräfta!" : "Nolla kontot till 0 kr"}
-                        </motion.button>
+                        <div className="flex flex-col gap-3 mt-4">
+                            <motion.button 
+                                whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.95 }} 
+                                onClick={() => {
+                                    if(confirmReset) { setBankZero(); setConfirmReset(false); } 
+                                    else { setConfirmReset(true); setTimeout(() => setConfirmReset(false), 3000); }
+                                }} 
+                                className={`w-full p-4 rounded-xl font-black uppercase text-sm transition-colors flex items-center justify-center gap-2 border-2 ${confirmReset ? 'bg-red-600 text-white border-red-700' : 'bg-slate-700 text-slate-300 border-slate-600 hover:bg-slate-600'}`}
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                                {confirmReset ? "Tryck igen för att bekräfta!" : "Nolla kontot till 0 kr"}
+                            </motion.button>
+                            
+                            <div className="flex gap-3">
+                                <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.95 }} onClick={setStreakZero} className="flex-1 p-3 bg-orange-600 text-white rounded-xl font-black uppercase text-xs shadow-sm hover:bg-orange-500 border-2 border-orange-700">
+                                    Nolla Streak
+                                </motion.button>
+                                <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.95 }} onClick={resetDailyQuests} className="flex-1 p-3 bg-emerald-600 text-white rounded-xl font-black uppercase text-xs shadow-sm hover:bg-emerald-500 border-2 border-emerald-700">
+                                    Lås upp uppdrag
+                                </motion.button>
+                            </div>
+                        </div>
                     </div>
 
                     {showAddForm ? (
@@ -2230,6 +2246,27 @@ const handleSaveBedtime = async () => {
                 }
             };
 
+            const setStreakZero = async () => {
+                try {
+                    const bankDoc = doc(db, 'artifacts', appId, 'public', 'data', 'bank', 'adrian');
+                    await updateDoc(bankDoc, { streak: 0 });
+                    alert("Streaken är nu nollställd!");
+                } catch (err) {
+                    console.error("Kunde inte nolla streak", err);
+                }
+            };
+
+            const resetDailyQuests = async () => {
+                try {
+                    const bankDoc = doc(db, 'artifacts', appId, 'public', 'data', 'bank', 'adrian');
+                    await updateDoc(bankDoc, { claimedQuests: {} });
+                    alert("Dagens uppdrag är nu upplåsta och kan göras igen!");
+                } catch (err) {
+                    console.error("Kunde inte återställa uppdrag", err);
+                }
+            };
+            // ------------------------------
+
             useEffect(() => {
                 if (!notifsEnabled || role !== 'child') return;
                 activities.forEach(a => {
@@ -2337,6 +2374,8 @@ const handleSaveBedtime = async () => {
                                 appId={appId} 
                                 user={user} 
                                 onLogout={() => changeRole('child')} 
+                                setStreakZero={setStreakZero}
+                                resetDailyQuests={resetDailyQuests}
                             />
                         ) : (
                             <ChildUI 
