@@ -42,8 +42,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, doc, setDoc, deleteDoc, updateDoc, addDoc, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-messaging.js";
-        
+        import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-messaging.js";
         const { useState, useEffect, useRef } = React;
         const { motion, AnimatePresence } = window.Motion;
         
@@ -2343,8 +2342,28 @@ const handleSaveBedtime = async () => {
                         audioRef.current?.play().catch(e => console.log("Audio failed", e));
                         firedNotifs.current.add(a.id + '-start');
                     }
+                // (Din befintliga kod för schema-larmen)
                 });
             }, [currentTime, notifsEnabled, activities, role]);
+
+            // --- NY KOD: Lyssna på notiser när appen är öppen ---
+            useEffect(() => {
+                if (!notifsEnabled) return;
+                const messaging = getMessaging(app);
+                const unsubscribe = onMessage(messaging, (payload) => {
+                    console.log('Fick meddelande i förgrunden!', payload);
+                    // Visa systemnotis fastän appen är öppen
+                    if (Notification.permission === 'granted') {
+                        new Notification(payload.notification.title, {
+                            body: payload.notification.body,
+                            icon: '/icon-270.png'
+                        });
+                        audioRef.current?.play().catch(e => console.log("Ljudet kunde inte spelas upp", e));
+                    }
+                });
+                return () => unsubscribe();
+            }, [notifsEnabled]);
+            // --- SLUT PÅ NY KOD ---
 
             const enableNotifs = async () => {
                 if (!window.Notification) {
@@ -2531,10 +2550,10 @@ const handleSaveBedtime = async () => {
         root.render(<App />);
 
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js').catch(err => console.log('SW failed', err));
-            });
-        }
+        window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/firebase-messaging-sw.js').catch(err => console.log('SW failed', err));
+    });
+}
     </script>
 </body>
 </html>
