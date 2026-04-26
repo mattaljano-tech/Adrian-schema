@@ -6,31 +6,38 @@ admin.initializeApp();
 const APP_ID = 'gaming-schema-app-light';
 const db = admin.firestore();
 
-// 🛠️ HJÄLPFUNKTION: Skickar notis direkt till Adrians padda/telefon
+// 🛠️ HJÄLPFUNKTION: Skickar notis till ALLA anslutna enheter
 async function sendToAdrian(title, body) {
-    const tokenDoc = await db.doc(`artifacts/${APP_ID}/public/data/device_tokens/adrians_telefon`).get();
-    
-    // ESLint-säker kontroll (utan frågetecken)
-    if (tokenDoc.exists && tokenDoc.data().token) {
-        const token = tokenDoc.data().token;
-        return admin.messaging().send({ 
-            token: token, 
-            notification: { 
-                title: title, 
-                body: body 
-            },
-            webpush: {
-                notification: {
-                    icon: '/icon-270.png' 
-                }
-            }
-        });
-    }
-    
-    console.log("Kunde inte skicka notis. Hittade ingen Token för Adrian.");
-    return null;
-}
+    try {
+        const tokenDoc = await db.doc(`artifacts/${APP_ID}/public/data/device_tokens/adrians_telefon`).get();
+        
+        if (tokenDoc.exists) {
+            const data = tokenDoc.data();
+            const tokens = data.tokens; 
 
+            if (tokens && Array.isArray(tokens) && tokens.length > 0) {
+                console.log(`Försöker skicka till ${tokens.length} enheter...`);
+                
+                const messages = tokens.map(t => ({
+                    token: t,
+                    notification: { title: title, body: body },
+                    webpush: { notification: { icon: '/icon-270.png' } }
+                }));
+
+                // Skicka och fånga svaret!
+                const response = await admin.messaging().sendEach(messages);
+                console.log("Svar från Google Firebase:", JSON.stringify(response));
+                return response;
+            }
+        }
+        
+        console.log("Kunde inte skicka notis. Hittade ingen lista med tokens.");
+        return null;
+    } catch (error) {
+        console.error("Kritiskt fel vid skickande av notis:", error);
+        return null;
+    }
+}
 // 1. DOPAMIN: Notis när ett NYTT UPPDRAG läggs till
 exports.onNewTask = functions.firestore
     .document(`artifacts/${APP_ID}/public/data/schedule_items/{itemId}`)

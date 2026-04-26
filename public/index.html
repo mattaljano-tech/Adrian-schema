@@ -41,7 +41,7 @@
     <script type="text/babel" data-type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, onSnapshot, doc, setDoc, deleteDoc, updateDoc, addDoc, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, doc, setDoc, deleteDoc, updateDoc, addDoc, enableIndexedDbPersistence, arrayUnion } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-messaging.js";
         const { useState, useEffect, useRef } = React;
         const { motion, AnimatePresence } = window.Motion;
@@ -1357,6 +1357,28 @@
             const [newPrepTime, setNewPrepTime] = useState('0');
             const [isLiveEvent, setIsLiveEvent] = useState(false);
             const [confirmReset, setConfirmReset] = useState(false);
+            const [showHistory, setShowHistory] = useState(false);
+const [saveAsFavorite, setSaveAsFavorite] = useState(false);
+const [favorites, setFavorites] = useState([]);
+
+useEffect(() => {
+    const favDoc = doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'favorites');
+    const unsubFav = onSnapshot(favDoc, (d) => {
+        if (d.exists()) {
+            setFavorites(d.data().list || []);
+        } else {
+            // Skapa några standardfavoriter första gången
+            const defaultFavs = [
+                { title: "Duscha", duration: 15, prepTime: 0 },
+                { title: "Frukost", duration: 30, prepTime: 0 },
+                { title: "Skola", duration: 360, prepTime: 15 },
+                { title: "Middag", duration: 45, prepTime: 5 }
+            ];
+            setDoc(favDoc, { list: defaultFavs }).catch(console.error);
+        }
+    });
+    return () => unsubFav();
+}, [db, appId]);
             
             const [localAdminName, setLocalAdminName] = useState(adminName);
             const [localDailyMessage, setLocalDailyMessage] = useState(dailyMessage);
@@ -1408,11 +1430,24 @@
                         const colPath = collection(db, 'artifacts', appId, 'public', 'data', 'schedule_items');
                         await setDoc(doc(colPath), activity);
                     }
+                    
+                    // --- NYTT: SPARA SOM FAVORIT ---
+                    if (saveAsFavorite && finalTitle) {
+                        if (!favorites.some(f => f.title.toLowerCase() === finalTitle.toLowerCase())) {
+                            const newFav = { title: finalTitle, duration: Number(newDuration), prepTime: Number(newPrepTime) };
+                            const updatedFavs = [...favorites, newFav];
+                            const favDoc = doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'favorites');
+                            updateDoc(favDoc, { list: updatedFavs }).catch(console.error);
+                        }
+                    }
+                    // -------------------------------
+
                     setShowAddForm(false); 
                     setEditingId(null); 
                     setNewTitle(''); 
                     setNewDuration('60'); 
                     setIsLiveEvent(false);
+                    setSaveAsFavorite(false);
                 } catch (err) { console.error("Write error:", err); }
             };
 
@@ -1443,12 +1478,42 @@ const handleSaveBedtime = async () => {
     }
 };
 
-            const grouped = activities.reduce((acc, a) => {
+            const nowTime = Date.now();
+            const upcomingActivities = activities.filter(a => a.endTime > nowTime);
+            const pastActivities = activities.filter(a => a.endTime <= nowTime);
+
+            const groupActivities = (list) => list.reduce((acc, a) => {
                 const dateKey = new Date(a.startTime).toISOString().split('T')[0];
                 if (!acc[dateKey]) acc[dateKey] = [];
                 acc[dateKey].push(a);
                 return acc;
             }, {});
+
+            const groupedUpcoming = groupActivities(upcomingActivities);
+            const groupedPast = groupActivities(pastActivities);
+
+            const renderActivityCard = (a) => (
+                <div key={a.id} className="bg-white p-5 rounded-[2rem] border-2 border-slate-200 shadow-sm flex flex-col gap-4">
+                    <div className="flex justify-between items-start">
+                        <div>
+                            <h3 className="font-black uppercase text-lg text-slate-800">{a.title}</h3>
+                            <p className="text-sm font-bold text-slate-500 font-clock">{new Date(a.startTime).toLocaleTimeString('sv-SE', {hour:'2-digit',minute:'2-digit'})} - {formatDuration(a.duration)}</p>
+                        </div>
+                        <div className="flex items-center gap-1">
+                            <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} onClick={() => handleEdit(a)} className="text-blue-500 p-2 font-bold uppercase text-[10px] hover:bg-blue-50 rounded-lg transition-colors">
+                                ✏️ Ändra
+                            </motion.button>
+                            <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} onClick={() => deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'schedule_items', a.id))} className="text-red-400 p-2 font-bold uppercase text-[10px] hover:bg-red-50 rounded-lg transition-colors">
+                                🗑️ Ta bort
+                            </motion.button>
+                        </div>
+                    </div>
+                    <div className="flex gap-2">
+                        <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => handleShift(a, -15)} className="flex-1 p-2 bg-slate-100 rounded-lg font-black text-[10px] uppercase">-15 min</motion.button>
+                        <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => handleShift(a, 15)} className="flex-1 p-2 bg-blue-50 text-blue-600 rounded-lg font-black text-[10px] uppercase">+15 min</motion.button>
+                    </div>
+                </div>
+            );
 
             return (
                 <div className="space-y-8 mt-4">
@@ -1568,6 +1633,23 @@ const handleSaveBedtime = async () => {
 
                     {showAddForm ? (
                         <form onSubmit={handleAdd} className="bg-white p-6 rounded-3xl border-2 border-slate-200 shadow-xl space-y-4">
+                            
+                            {/* NYTT: FAVORITER (Snabba val) */}
+                            {favorites.length > 0 && (
+                                <div className="flex flex-wrap gap-2 mb-2 p-3 bg-emerald-50 rounded-xl border border-emerald-100">
+                                    <span className="w-full text-[10px] font-black uppercase text-emerald-600 mb-1">Snabba val:</span>
+                                    {favorites.map((fav, i) => (
+                                        <button key={i} type="button" onClick={() => {
+                                            setNewTitle(fav.title);
+                                            setNewDuration(fav.duration.toString());
+                                            setNewPrepTime(fav.prepTime.toString());
+                                        }} className="bg-white text-emerald-700 px-3 py-1.5 rounded-full text-xs font-bold shadow-sm hover:bg-emerald-100 border border-emerald-200 transition-colors">
+                                            + {fav.title}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+
                             <input type="text" value={newTitle} onChange={e => setNewTitle(e.target.value)} className="w-full p-3 bg-slate-50 border rounded-xl font-bold" placeholder={isLiveEvent ? "Steal a brainroth" : "Uppdragsnamn..."} />
                             
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1608,8 +1690,14 @@ const handleSaveBedtime = async () => {
                                 <span className="font-black uppercase text-xs">Steal a brainroth Event</span>
                             </label>
                             
+                            {/* NY CHECKBOX: Spara som favorit */}
+                            <label className="flex items-center gap-3 p-3 bg-emerald-50 border border-emerald-100 rounded-xl cursor-pointer">
+                                <input type="checkbox" checked={saveAsFavorite} onChange={e => setSaveAsFavorite(e.target.checked)} className="w-5 h-5 rounded text-emerald-600" />
+                                <span className="font-black uppercase text-xs text-emerald-800">⭐ Spara som favorit</span>
+                            </label>
+                            
                             <div className="flex gap-2">
-                                <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} type="button" onClick={() => { setShowAddForm(false); setEditingId(null); setNewDuration('60'); setNewTitle(''); }} className="flex-1 p-3 bg-slate-200 rounded-xl font-black uppercase text-xs">Avbryt</motion.button>
+                                <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} type="button" onClick={() => { setShowAddForm(false); setEditingId(null); setNewDuration('60'); setNewTitle(''); setSaveAsFavorite(false); }} className="flex-1 p-3 bg-slate-200 rounded-xl font-black uppercase text-xs">Avbryt</motion.button>
                                 <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} type="submit" className="flex-1 p-3 bg-blue-600 text-white rounded-xl font-black uppercase text-xs shadow-lg">Spara</motion.button>
                             </div>
                         </form>
@@ -1625,43 +1713,44 @@ const handleSaveBedtime = async () => {
                     )}
 
                     <div className="space-y-8">
-                        {Object.keys(grouped).sort().map(date => (
+                        {/* KOMMANDE UPPDRAG */}
+                        {Object.keys(groupedUpcoming).sort().map(date => (
                             <div key={date} className="space-y-4">
                                 <h2 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">{date}</h2>
-                                {grouped[date].map(a => (
-                                    <div key={a.id} className="bg-white p-5 rounded-[2rem] border-2 border-slate-200 shadow-sm flex flex-col gap-4">
-                                        <div className="flex justify-between items-start">
-                                            <div>
-                                                <h3 className="font-black uppercase text-lg text-slate-800">{a.title}</h3>
-                                                <p className="text-sm font-bold text-slate-500 font-clock">{new Date(a.startTime).toLocaleTimeString('sv-SE', {hour:'2-digit',minute:'2-digit'})} - {formatDuration(a.duration)}</p>
-                                            </div>
-                                            <div className="flex items-center gap-1">
-                                                <motion.button 
-                                                    whileHover={{ scale: 1.1 }}
-                                                    whileTap={{ scale: 0.9 }}
-                                                    onClick={() => handleEdit(a)} 
-                                                    className="text-blue-500 p-2 font-bold uppercase text-[10px] hover:bg-blue-50 rounded-lg transition-colors"
-                                                >
-                                                    ✏️ Ändra
-                                                </motion.button>
-                                                <motion.button 
-                                                    whileHover={{ scale: 1.1 }}
-                                                    whileTap={{ scale: 0.9 }}
-                                                    onClick={() => deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'schedule_items', a.id))} 
-                                                    className="text-red-400 p-2 font-bold uppercase text-[10px] hover:bg-red-50 rounded-lg transition-colors"
-                                                >
-                                                    🗑️ Ta bort
-                                                </motion.button>
-                                            </div>
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => handleShift(a, -15)} className="flex-1 p-2 bg-slate-100 rounded-lg font-black text-[10px] uppercase">-15 min</motion.button>
-                                            <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => handleShift(a, 15)} className="flex-1 p-2 bg-blue-50 text-blue-600 rounded-lg font-black text-[10px] uppercase">+15 min</motion.button>
-                                        </div>
-                                    </div>
-                                ))}
+                                {groupedUpcoming[date].map(a => renderActivityCard(a))}
                             </div>
                         ))}
+
+                        {Object.keys(groupedUpcoming).length === 0 && (
+                            <div className="text-center p-8 bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-300">
+                                <span className="text-3xl mb-2 block">✨</span>
+                                <p className="text-slate-500 font-bold uppercase tracking-widest text-sm">Inga kommande uppdrag</p>
+                            </div>
+                        )}
+
+                        {/* HISTORIK (PASSERADE UPPDRAG) */}
+                        {pastActivities.length > 0 && (
+                            <div className="mt-12 pt-8 border-t-4 border-slate-200">
+                                <button
+                                    onClick={() => setShowHistory(!showHistory)}
+                                    className="w-full bg-slate-200 text-slate-600 py-4 rounded-2xl font-black uppercase tracking-widest shadow-sm flex justify-between items-center px-6 hover:bg-slate-300 transition-colors"
+                                >
+                                    <span>📜 Historik (Passerade)</span>
+                                    <span className="text-xl">{showHistory ? '🔼' : '🔽'}</span>
+                                </button>
+
+                                {showHistory && (
+                                    <div className="mt-6 space-y-8 opacity-70 grayscale-[20%]">
+                                        {Object.keys(groupedPast).sort((a,b) => b.localeCompare(a)).map(date => (
+                                            <div key={date} className="space-y-4">
+                                                <h2 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">{date}</h2>
+                                                {groupedPast[date].map(a => renderActivityCard(a))}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
             );
@@ -2383,23 +2472,26 @@ const handleSaveBedtime = async () => {
                         // 2. Hämta token från Google
                         const messaging = getMessaging(app);
                         const currentToken = await getToken(messaging, { 
-    vapidKey: 'BKc6JIfn6UU5KfzfPe0l56Pj5gFfQflQeroH8hEenz3OoeiFrfQIdwhKD1c380MP9ydhPVdOyvIE4C-Schh-0sA',
-    serviceWorkerRegistration: registration 
-});
+                            vapidKey: 'BKc6JIfn6UU5KfzfPe0l56Pj5gFfQflQeroH8hEenz3OoeiFrfQIdwhKD1c380MP9ydhPVdOyvIE4C-Schh-0sA',
+                            serviceWorkerRegistration: registration 
+                        });
 
                         if (currentToken) {
-                            console.log("Fick Token!", currentToken);
+                            console.log("Hämtade Token!", currentToken);
                             
-                            // 3. Spara till RÄTT mapp i databasen! (device_tokens -> adrians_telefon)
-                            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'device_tokens', 'adrians_telefon'), { 
-                                token: currentToken 
-                            });
+                            // Vi sparar till device_tokens -> adrians_telefon
+                            const tokenDoc = doc(db, 'artifacts', appId, 'public', 'data', 'device_tokens', 'adrians_telefon');
                             
-                            alert("BINGO! Token hämtad och sparad i databasen!");
+                            // arrayUnion ser till att nyckeln läggs till i en lista (utan dubbletter)
+                            await setDoc(tokenDoc, { 
+                                tokens: arrayUnion(currentToken) 
+                            }, { merge: true });
+                            
+                            alert("Notiser aktiverade på denna enhet!");
                         } else {
                             alert("Kunde inte hämta nyckeln från Google.");
                         }
-                    }
+                    } 
                 } catch (error) {
                     console.error("Kunde inte aktivera push-notiser", error);
                     alert("Fel vid hämtning: " + error.message);
