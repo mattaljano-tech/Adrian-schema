@@ -1360,6 +1360,9 @@
             const [showHistory, setShowHistory] = useState(false);
 const [saveAsFavorite, setSaveAsFavorite] = useState(false);
 const [favorites, setFavorites] = useState([]);
+// NYA STATES FÖR IHOPFÄLLBARA RUTOR
+        const [showDailyMessageUI, setShowDailyMessageUI] = useState(false);
+        const [showBedtimeUI, setShowBedtimeUI] = useState(false);
 
 useEffect(() => {
     const favDoc = doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'favorites');
@@ -1531,70 +1534,88 @@ const handleSaveBedtime = async () => {
                     </div>
 
                     {/* --- DAGENS MEDDELANDE (ADMIN) --- */}
-                    <div className="bg-yellow-50 border-4 border-yellow-300 p-6 rounded-3xl shadow-md">
-                        <h2 className="font-black text-yellow-800 uppercase tracking-widest mb-4 flex items-center gap-2">
-                            💬 Dagens Meddelande & Förebild
-                        </h2>
-                        <p className="text-sm text-yellow-700 font-bold mb-4">Skriv in ditt namn och vad du vill säga till Adrian idag.</p>
+                    <div className="bg-yellow-50 border-4 border-yellow-300 rounded-3xl shadow-md overflow-hidden">
+                        <button 
+                            onClick={() => setShowDailyMessageUI(!showDailyMessageUI)}
+                            className="w-full p-6 flex justify-between items-center hover:bg-yellow-100 transition-colors"
+                        >
+                            <h2 className="font-black text-yellow-800 uppercase tracking-widest flex items-center gap-2 m-0 text-left">
+                                💬 Dagens Meddelande
+                            </h2>
+                            <span className="text-xl">{showDailyMessageUI ? '🔼' : '🔽'}</span>
+                        </button>
                         
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-xs font-black uppercase text-yellow-800 mb-1">Ditt Namn (Förebild)</label>
-                                <input 
-                                    type="text" 
-                                    value={localAdminName} 
-                                    onChange={e => setLocalAdminName(e.target.value)}
-                                    placeholder="T.ex. Din kompis"
-                                    className="w-full p-3 bg-white border-2 border-yellow-200 rounded-xl font-bold"
-                                />
+                        {showDailyMessageUI && (
+                            <div className="p-6 pt-0 border-t-2 border-yellow-200 border-dashed">
+                                <p className="text-sm text-yellow-700 font-bold mb-4 mt-4">Skriv in ditt namn och vad du vill säga till Adrian idag.</p>
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-xs font-black uppercase text-yellow-800 mb-1">Ditt Namn (Förebild)</label>
+                                        <input 
+                                            type="text" 
+                                            value={localAdminName} 
+                                            onChange={e => setLocalAdminName(e.target.value)}
+                                            placeholder="T.ex. Din kompis"
+                                            className="w-full p-3 bg-white border-2 border-yellow-200 rounded-xl font-bold"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-black uppercase text-yellow-800 mb-1">Meddelande till Adrian</label>
+                                        <textarea 
+                                            value={localDailyMessage} 
+                                            onChange={e => setLocalDailyMessage(e.target.value)}
+                                            placeholder="Skriv något peppande här..."
+                                            className="w-full p-3 bg-white border-2 border-yellow-200 rounded-xl font-bold min-h-[80px]"
+                                        ></textarea>
+                                    </div>
+                                    <motion.button 
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        onClick={handleSaveMessage} 
+                                        className="w-full p-3 bg-yellow-400 text-yellow-900 rounded-xl font-black uppercase text-sm shadow-sm hover:bg-yellow-500 border-2 border-yellow-500 transition-colors"
+                                    >
+                                        Spara Meddelande
+                                    </motion.button>
+                                </div>
                             </div>
-                            <div>
-                                <label className="block text-xs font-black uppercase text-yellow-800 mb-1">Meddelande till Adrian</label>
-                                <textarea 
-                                    value={localDailyMessage} 
-                                    onChange={e => setLocalDailyMessage(e.target.value)}
-                                    placeholder="Skriv något peppande här..."
-                                    className="w-full p-3 bg-white border-2 border-yellow-200 rounded-xl font-bold min-h-[80px]"
-                                ></textarea>
-                            </div>
-                            
-                            <motion.button 
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.95 }}
-                                onClick={handleSaveMessage} 
-                                className="w-full p-3 bg-yellow-400 text-yellow-900 rounded-xl font-black uppercase text-sm shadow-sm hover:bg-yellow-500 border-2 border-yellow-500 transition-colors"
-                            >
-                                Spara Meddelande
-                            </motion.button>
-                        </div>
+                        )}
                     </div>
-
                     {/* --- LÄGGDAGS (ADMIN) --- */}
-                    <div className="bg-indigo-50 border-4 border-indigo-300 p-6 rounded-3xl shadow-md">
-                        <h2 className="font-black text-indigo-800 uppercase tracking-widest mb-4 flex items-center gap-2">
-                            🌙 Inställning för Läggdags
-                        </h2>
-                        <p className="text-sm text-indigo-700 font-bold mb-4">Ställ in vilken tid Adrian ska gå och lägga sig. Detta visas på hans schema.</p>
+                    <div className="bg-indigo-50 border-4 border-indigo-300 rounded-3xl shadow-md overflow-hidden">
+                        <button 
+                            onClick={() => setShowBedtimeUI(!showBedtimeUI)}
+                            className="w-full p-6 flex justify-between items-center hover:bg-indigo-100 transition-colors"
+                        >
+                            <h2 className="font-black text-indigo-800 uppercase tracking-widest flex items-center gap-2 m-0 text-left">
+                                🌙 Inställning för Läggdags
+                            </h2>
+                            <span className="text-xl">{showBedtimeUI ? '🔼' : '🔽'}</span>
+                        </button>
                         
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-xs font-black uppercase text-indigo-800 mb-1">Tid för läggdags</label>
-                                <input 
-                                    type="time" 
-                                    value={localBedtime} 
-                                    onChange={e => setLocalBedtime(e.target.value)}
-                                    className="w-full p-3 bg-white border-2 border-indigo-200 rounded-xl font-bold font-clock text-indigo-900"
-                                />
+                        {showBedtimeUI && (
+                            <div className="p-6 pt-0 border-t-2 border-indigo-200 border-dashed">
+                                <p className="text-sm text-indigo-700 font-bold mb-4 mt-4">Ställ in vilken tid Adrian ska gå och lägga sig.</p>
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-xs font-black uppercase text-indigo-800 mb-1">Tid för läggdags</label>
+                                        <input 
+                                            type="time" 
+                                            value={localBedtime} 
+                                            onChange={e => setLocalBedtime(e.target.value)}
+                                            className="w-full p-3 bg-white border-2 border-indigo-200 rounded-xl font-bold font-clock text-indigo-900"
+                                        />
+                                    </div>
+                                    <motion.button 
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        onClick={handleSaveBedtime} 
+                                        className="w-full p-3 bg-indigo-500 text-white rounded-xl font-black uppercase text-sm shadow-sm hover:bg-indigo-600 transition-colors"
+                                    >
+                                        Spara Läggdags
+                                    </motion.button>
+                                </div>
                             </div>
-                            <motion.button 
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.95 }}
-                                onClick={handleSaveBedtime} 
-                                className="w-full p-3 bg-indigo-500 text-white rounded-xl font-black uppercase text-sm shadow-sm hover:bg-indigo-600 transition-colors"
-                            >
-                                Spara Läggdags
-                            </motion.button>
-                        </div>
+                        )}
                     </div>
 
                     <div className="bg-slate-800 border-4 border-slate-700 p-6 sm:p-8 rounded-3xl shadow-xl text-white">
